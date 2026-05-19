@@ -9,10 +9,10 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from inim_prime_api.helpers.partitions import clear_all_partitions_alarm_memory
-from inim_prime_api.helpers.zones import include_all_zones
-from inim_prime_api.models.log_event import LogEvent
-from inim_prime_api.models.system_faults import SystemFault
+from inim.prime.primelan.helpers.partitions import clear_all_partitions_alarm_memory
+from inim.prime.primelan.helpers.zones import include_all_zones
+from inim.prime.primelan.models.log_event import LogEvent
+from inim.prime.primelan.models.system_faults import SystemFault
 from ..const import INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER, DOMAIN
 from ..coordinators import InimPrimePanelLogEventsCoordinator, InimPrimeSystemFaultsUpdateCoordinator, \
     InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator
