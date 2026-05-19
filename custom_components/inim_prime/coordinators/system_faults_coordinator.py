@@ -1,13 +1,12 @@
 import logging
 from datetime import timedelta
-from typing import Dict
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from inim_prime_api import InimPrimeClient
-from inim_prime_api.models.system_faults import SystemFaultsStatus
+from inim.prime.primelan.client import InimPrimeClient
+from inim.prime.primelan.models.system_faults import SystemFaultsStatus
 
 _LOGGER = logging.getLogger(__name__)
 

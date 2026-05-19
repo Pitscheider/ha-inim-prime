@@ -21,8 +21,8 @@ from ..helpers.panel_log_events import (
     serialize_panel_log_events,
     async_fetch_panel_log_events,
 )
-from inim_prime_api import InimPrimeClient
-from inim_prime_api.models.log_event import LogEvent
+from inim.prime.primelan.client import InimPrimeClient
+from inim.prime.primelan.models.log_event import LogEvent
 
 _LOGGER = logging.getLogger(__name__)
 

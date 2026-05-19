@@ -8,7 +8,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinators import InimPrimeZonesUpdateCoordinator
 from ..const import INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER, DOMAIN
-from inim_prime_api.models.zone import ZoneState, ZoneStatus, ZoneExclusionSetRequest
+from inim.prime.primelan.models.zone import ZoneState, ZoneStatus, ZoneExclusionSetRequest
 
 
 def create_zone_device_info(

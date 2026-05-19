@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import List, Optional
 
-from inim_prime_api import InimPrimeClient
-from inim_prime_api.helpers.log_events import filter_new_log_events
-from inim_prime_api.models.log_event import LogEvent
+from inim.prime.primelan.client import InimPrimeClient
+from inim.prime.primelan.helpers.log_events import filter_new_log_events
+from inim.prime.primelan.models.log_event import LogEvent
 
 
 # ───────────────

@@ -7,7 +7,7 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import section
 from homeassistant.helpers.selector import TextSelector, TextSelectorType, TextSelectorConfig
 
-from inim_prime_api import InimPrimeClient
+from inim.prime.primelan.client import InimPrimeClient
 from .const import (
     CONF_HOST,
     CONF_API_KEY,

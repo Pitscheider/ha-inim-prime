@@ -5,7 +5,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from inim_prime_api import InimPrimeClient
+from inim.prime.primelan.client import InimPrimeClient
 from .const import (
     CONF_SERIAL_NUMBER,
     DOMAIN,

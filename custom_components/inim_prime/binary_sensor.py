@@ -3,7 +3,7 @@ from .const import DOMAIN, ZONES_COORDINATOR, PARTITIONS_COORDINATOR, SYSTEM_FAU
 from .entities.panel import SystemFaultBinarySensor
 from .entities.partition import PartitionAlarmMemoryBinarySensor
 from .entities.zone import ZoneStateBinarySensor, ZoneAlarmMemoryBinarySensor
-from inim_prime_api.models.system_faults import EXPOSED_SYSTEM_FAULTS
+from inim.prime.primelan.models.system_faults import EXPOSED_SYSTEM_FAULTS
 
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:

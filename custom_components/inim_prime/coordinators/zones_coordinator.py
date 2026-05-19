@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass, field
+
 from datetime import timedelta
 from typing import Dict
 
@@ -7,12 +7,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from inim_prime_api import InimPrimeClient
-from inim_prime_api.models.partition import PartitionStatus
-from inim_prime_api.models.zone import ZoneStatus
-from inim_prime_api.models.system_faults import SystemFaultsStatus
-from inim_prime_api.models.gsm import GSMSStatus
-from inim_prime_api.models.output import OutputStatus
+from inim.prime.primelan.client import InimPrimeClient
+from inim.prime.primelan.models.zone import ZoneStatus
 
 _LOGGER = logging.getLogger(__name__)
 

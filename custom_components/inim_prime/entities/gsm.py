@@ -11,7 +11,7 @@ from ..const import DOMAIN, INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER
 def create_gsm_device_info(
         entry: ConfigEntry,
         domain: str = DOMAIN,
-        sw_version: str = None
+        sw_version: str | None = None
 ) -> DeviceInfo:
     return DeviceInfo(
         identifiers = {(domain, f"{entry.data[CONF_SERIAL_NUMBER]}_gsm")},

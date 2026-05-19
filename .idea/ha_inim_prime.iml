@@ -5,8 +5,9 @@
       <sourceFolder url="file://$MODULE_DIR$/custom_components/inim_prime" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12 (ha_inim_prime)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.14 (ha_inim_prime)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="inim_prime_api" />
+    <orderEntry type="module" module-name="inim-prime-primelan" />
   </component>
 </module>

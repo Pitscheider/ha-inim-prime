@@ -4,7 +4,7 @@
   "version": "0.1.4",
   "documentation": "https://github.com/Pitscheider/ha_inim_prime",
   "requirements": [
-    "inim_prime_api @ https://github.com/Pitscheider/inim_prime_api/archive/refs/tags/v0.1.4.zip"
+    "inim-prime-primelan@git+https://github.com/Pitscheider/inim-prime-primelan.git@v0.1.5"
   ],
   "codeowners": [
     "@Pitscheider"
