@@ -12,13 +12,13 @@ from __future__ import annotations
 
 from types import MappingProxyType
 
+from custom_components.inim_prime import NativeAdapter, PrimelanAdapter
 from models.gsm import UnifiedGSM
 from models.log_events import UnifiedLogEvent
 from models.outputs import UnifiedOutput
 from models.partitions import UnifiedPartition, UnifiedArmingStatus
 from models.system_faults import UnifiedSystemFaults
 from models.zones import UnifiedZone
-from .adapters import NativeAdapter, PrimelanAdapter
 from .exceptions import InimPrimeFeatureNotSupportedError
 
 
