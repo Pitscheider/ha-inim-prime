@@ -6,7 +6,8 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from adapters import PrimelanAdapter, NativeAdapter
+from adapters.native_adapter import NativeAdapter
+from adapters.primelan_adapter import PrimelanAdapter
 from inim.prime.native.client import Client as NativeClient
 from inim.prime.primelan.client import InimPrimeClient as PrimelanClient
 
