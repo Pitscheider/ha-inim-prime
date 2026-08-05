@@ -4,8 +4,8 @@
   "version": "0.1.4",
   "documentation": "https://github.com/Pitscheider/ha_inim_prime",
   "requirements": [
-    "inim-prime-primelan@git+https://github.com/Pitscheider/inim-prime-primelan.git@v0.1.5",
-    "inim-prime-native@git+https://github.com/Pitscheider/inim-prime-native.git"
+    "inim-prime-primelan@git+https://github.com/Pitscheider/inim-prime-primelan.git@9da098a2f9123732551b79b861fa5d38e5a3f81c",
+    "inim-prime-native@git+https://github.com/Pitscheider/inim-prime-native.git@d3d7031f1847aac995dbd4a88ff12de6c37fbb68"
   ],
   "codeowners": [
     "@Pitscheider"
