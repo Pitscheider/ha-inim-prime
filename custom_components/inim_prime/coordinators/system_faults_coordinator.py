@@ -5,12 +5,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from inim.prime.primelan.client import InimPrimeClient
-from inim.prime.primelan.models.system_faults import SystemFaultsStatus
+from gateway import InimPrimeGateway
+from models.system_faults import UnifiedSystemFaults
 
 _LOGGER = logging.getLogger(__name__)
 
-class InimPrimeSystemFaultsUpdateCoordinator(DataUpdateCoordinator[SystemFaultsStatus]):
+class InimPrimeSystemFaultsUpdateCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch system faults from the panel."""
 
     def __init__(
@@ -18,7 +18,7 @@ class InimPrimeSystemFaultsUpdateCoordinator(DataUpdateCoordinator[SystemFaultsS
             hass: HomeAssistant,
             update_interval: timedelta,
             entry: ConfigEntry,
-            client: InimPrimeClient,
+            gateway: InimPrimeGateway,
     ):
         super().__init__(
             hass = hass,
@@ -27,20 +27,12 @@ class InimPrimeSystemFaultsUpdateCoordinator(DataUpdateCoordinator[SystemFaultsS
             name = "INIM Prime System Faults",
             update_interval = update_interval,
         )
-        self.client = client
-        self.data: SystemFaultsStatus = SystemFaultsStatus(
-            supply_voltage = None,
-            faults = frozenset(),
-        )
+        self.gateway = gateway
         self.entry = entry
 
-    async def _async_update_data(self) -> SystemFaultsStatus:
+    async def _async_update_data(self) -> UnifiedSystemFaults:
         """Fetch data from API."""
         try:
-            system_faults = await self.client.get_system_faults_status()
-
-            self.data = system_faults
-
-            return self.data
+            return await self.gateway.update_system_faults()
         except Exception as err:
             raise UpdateFailed(err) from err

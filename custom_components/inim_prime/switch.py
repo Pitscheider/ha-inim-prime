@@ -1,6 +1,6 @@
 from .coordinators import InimPrimeZonesUpdateCoordinator
 from .const import DOMAIN, ZONES_COORDINATOR
-from .entities.zone import ZoneExclusionSwitch
+from .entities.zone import ZoneBypassSwitch
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -10,7 +10,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     entities = []
 
-    for zone in zones_coordinator.data.values():
-        entities.append(ZoneExclusionSwitch(zones_coordinator, entry, zone))
+    for zone in zones_coordinator.gateway.zones.values():
+        entities.append(ZoneBypassSwitch(zones_coordinator, entry, zone))
 
     async_add_entities(entities, update_before_add = True)

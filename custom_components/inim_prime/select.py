@@ -1,6 +1,6 @@
 from .coordinators import InimPrimePartitionsUpdateCoordinator
 from .const import DOMAIN, PARTITIONS_COORDINATOR
-from .entities.partition import PartitionModeSelect
+from .entities.partition import PartitionArmingStatusSelect
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -10,7 +10,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     entities = []
 
-    for partition in partitions_coordinator.data.values():
-        entities.append(PartitionModeSelect(partitions_coordinator, entry, partition))
+    for partition in partitions_coordinator.gateway.partitions.values():
+        entities.append(PartitionArmingStatusSelect(partitions_coordinator, entry, partition))
 
     async_add_entities(entities, update_before_add = True)

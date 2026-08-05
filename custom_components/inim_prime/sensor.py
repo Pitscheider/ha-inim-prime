@@ -6,7 +6,7 @@ from .coordinators import (
 )
 from .const import DOMAIN, ZONES_COORDINATOR, PARTITIONS_COORDINATOR, GSM_COORDINATOR, SYSTEM_FAULTS_COORDINATOR
 from .entities.gsm import GSMSupplyVoltageSensor, GSMOperatorSensor, GSMSignalStrengthSensor, GSMCreditSensor
-from .entities.panel import PanelSupplyVoltageSensor, ExcludedZonesCountSensor, ZonesAlarmMemoryCountSensor, \
+from .entities.panel import PanelSupplyVoltageSensor, BypassedZonesCountSensor, ZonesAlarmMemoryCountSensor, \
     PartitionsAlarmMemoryCountSensor
 from .entities.partition import PartitionStateSensor
 from .entities.zone import ZoneStateSensor
@@ -23,16 +23,16 @@ async def async_setup_entry(hass, entry, async_add_entities):
     entities = []
 
     # Zone sensors
-    for zone in zones_coordinator.data.values():
+    for zone in zones_coordinator.gateway.zones.values():
         entities.append(ZoneStateSensor(zones_coordinator, entry, zone))
 
     # Partition sensors
-    for partition in partitions_coordinator.data.values():
+    for partition in partitions_coordinator.gateway.partitions.values():
         entities.append(PartitionStateSensor(partitions_coordinator, entry, partition))
 
     # Panel sensors
     entities.append(PanelSupplyVoltageSensor(system_faults_coordinator, entry))
-    entities.append(ExcludedZonesCountSensor(zones_coordinator, entry))
+    entities.append(BypassedZonesCountSensor(zones_coordinator, entry))
     entities.append(ZonesAlarmMemoryCountSensor(zones_coordinator, entry))
     entities.append(PartitionsAlarmMemoryCountSensor(partitions_coordinator, entry))
 

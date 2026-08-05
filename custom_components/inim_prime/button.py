@@ -1,7 +1,7 @@
 from .coordinators import InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator
 from .const import DOMAIN, ZONES_COORDINATOR, PARTITIONS_COORDINATOR
-from .entities.panel import IncludeAllZonesButton, ClearAllPartitionsAlarmMemoryButton
-from .entities.partition import ClearPartitionAlarmMemoryButton
+from .entities.panel import DisableAllZoneBypassesButton, ResetAllPartitionMemoriesButton
+from .entities.partition import ResetPartitionMemoryButton
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -12,10 +12,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     entities = []
 
-    for partition in partitions_coordinator.data.values():
-        entities.append(ClearPartitionAlarmMemoryButton(partitions_coordinator, entry, partition))
+    for partition in partitions_coordinator.gateway.partitions.values():
+        entities.append(ResetPartitionMemoryButton(partitions_coordinator, entry, partition))
 
-    entities.append(IncludeAllZonesButton(zones_coordinator, entry))
-    entities.append(ClearAllPartitionsAlarmMemoryButton(partitions_coordinator, entry))
+    entities.append(DisableAllZoneBypassesButton(zones_coordinator, entry))
+    entities.append(ResetAllPartitionMemoriesButton(partitions_coordinator, entry))
 
     async_add_entities(entities, update_before_add = True)

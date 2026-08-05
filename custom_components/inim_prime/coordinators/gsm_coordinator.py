@@ -5,12 +5,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from inim.prime.primelan.client import InimPrimeClient
-from inim.prime.primelan.models.gsm import GSMSStatus
+from gateway import InimPrimeGateway
+from models.gsm import UnifiedGSM
 
 _LOGGER = logging.getLogger(__name__)
 
-class InimPrimeGSMUpdateCoordinator(DataUpdateCoordinator[GSMSStatus]):
+class InimPrimeGSMUpdateCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch GSM from the panel."""
 
     def __init__(
@@ -18,7 +18,7 @@ class InimPrimeGSMUpdateCoordinator(DataUpdateCoordinator[GSMSStatus]):
             hass: HomeAssistant,
             update_interval: timedelta,
             entry: ConfigEntry,
-            client: InimPrimeClient,
+            gateway: InimPrimeGateway,
     ):
         super().__init__(
             hass = hass,
@@ -27,23 +27,12 @@ class InimPrimeGSMUpdateCoordinator(DataUpdateCoordinator[GSMSStatus]):
             name = "INIM Prime GSM",
             update_interval = update_interval,
         )
-        self.client = client
-        self.data: GSMSStatus = GSMSStatus(
-            supply_voltage = None,
-            firmware_version = None,
-            operator = None,
-            signal_strength = None,
-            credit = None,
-        )
+        self.gateway = gateway
         self.entry = entry
 
-    async def _async_update_data(self) -> GSMSStatus:
+    async def _async_update_data(self) -> UnifiedGSM:
         """Fetch data from API."""
         try:
-            gsm = await self.client.get_gsm_status()
-
-            self.data = gsm
-
-            return self.data
+            return await self.gateway.update_gsm()
         except Exception as err:
             raise UpdateFailed(err) from err

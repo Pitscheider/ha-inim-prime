@@ -6,10 +6,9 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from models.zones import UnifiedZone, UnifiedZoneState
 from ..coordinators import InimPrimeZonesUpdateCoordinator
 from ..const import INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER, DOMAIN
-from inim.prime.primelan.models.zone import ZoneState, ZoneStatus, ZoneExclusionSetRequest
-
 
 def create_zone_device_info(
         entry: ConfigEntry,
@@ -36,27 +35,27 @@ class ZoneStateBinarySensor(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
             entry: ConfigEntry,
-            zone: ZoneStatus,
+            zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
-        self.zone_id = zone.id
+        self.zone_id = zone.zone_id
         self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{self.zone_id}_triggered"
 
         self._attr_device_info = create_zone_device_info(
             entry = entry,
             zone_id = self.zone_id,
-            zone_name = zone.name,
+            zone_name = zone.label,
         )
 
     @property
     def is_on(self) -> bool | None:
-        zone = self.coordinator.data.get(self.zone_id)
+        zone = self.coordinator.gateway.get_zone(self.zone_id)
 
-        if zone:
-            if zone.state == ZoneState.ALARM:
+        if zone and zone.state is not None:
+            if zone.state == UnifiedZoneState.ALARM:
                 return True
-            if zone.state == ZoneState.READY:
+            if zone.state == UnifiedZoneState.STANDBY:
                 return False
         return None
 
@@ -67,30 +66,30 @@ class ZoneStateSensor(
 ):
     _attr_name = "State"
     _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = [state.name for state in ZoneState]
+    _attr_options = [state.name for state in UnifiedZoneState]
     _attr_icon = "mdi:magnify"
 
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
             entry: ConfigEntry,
-            zone: ZoneStatus,
+            zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
-        self.zone_id = zone.id
+        self.zone_id = zone.zone_id
         self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{self.zone_id}_state"
 
         self._attr_device_info = create_zone_device_info(
             entry = entry,
             zone_id = self.zone_id,
-            zone_name = zone.name,
+            zone_name = zone.label,
         )
 
     @property
     def native_value(self) -> str | None:
-        zone = self.coordinator.data.get(self.zone_id)
-        if zone:
+        zone = self.coordinator.gateway.get_zone(self.zone_id)
+        if zone and zone.state is not None:
             return zone.state.name
         return None
 
@@ -108,32 +107,32 @@ class ZoneAlarmMemoryBinarySensor(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
             entry: ConfigEntry,
-            zone: ZoneStatus,
+            zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
-        self.zone_id = zone.id
+        self.zone_id = zone.zone_id
         self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{self.zone_id}_alarm_memory"
 
         self._attr_device_info = create_zone_device_info(
             entry = entry,
             zone_id = self.zone_id,
-            zone_name = zone.name,
+            zone_name = zone.label,
         )
 
     @property
     def is_on(self) -> bool | None:
-        zone = self.coordinator.data.get(self.zone_id)
+        zone = self.coordinator.gateway.get_zone(self.zone_id)
         if zone:
             return zone.alarm_memory
         return None
 
 
-class ZoneExclusionSwitch(
+class ZoneBypassSwitch(
     CoordinatorEntity[InimPrimeZonesUpdateCoordinator],
     SwitchEntity,
 ):
-    _attr_name = "Exclusion"
+    _attr_name = "Bypass"
     _attr_icon = "mdi:cancel"
     _attr_device_class = SwitchDeviceClass.SWITCH
 
@@ -141,35 +140,39 @@ class ZoneExclusionSwitch(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
             entry: ConfigEntry,
-            zone: ZoneStatus,
+            zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
-        self.zone_id = zone.id
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{self.zone_id}_exclusion"
+        self.zone_id = zone.zone_id
+        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{self.zone_id}_bypass"
 
         self._attr_device_info = create_zone_device_info(
             entry = entry,
             zone_id = self.zone_id,
-            zone_name = zone.name,
+            zone_name = zone.label,
         )
 
     @property
     def is_on(self) -> bool | None:
-        """Return True if zone is excluded (switch ON = excluded)."""
-        zone = self.coordinator.data.get(self.zone_id)
+        """Return True if zone is bypass (switch ON = bypass)."""
+        zone = self.coordinator.gateway.get_zone(self.zone_id)
         if zone:
-            return zone.excluded
+            return zone.bypass
         return None
 
     async def async_turn_on(self, **kwargs):
-        """Set zone as excluded."""
-        request = ZoneExclusionSetRequest(zone_id = self.zone_id, exclude = True)
-        await self.coordinator.client.set_zone_exclusion(request)
+        """Set zone as bypassed."""
+        await self.coordinator.gateway.set_zone_bypass(
+            zone_id = self.zone_id,
+            bypass = True,
+        )
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
-        """Set zone as included."""
-        request = ZoneExclusionSetRequest(zone_id = self.zone_id, exclude = False)
-        await self.coordinator.client.set_zone_exclusion(request)
+        """Set zone as not bypassed."""
+        await self.coordinator.gateway.set_zone_bypass(
+            zone_id = self.zone_id,
+            bypass = False,
+        )
         await self.coordinator.async_request_refresh()

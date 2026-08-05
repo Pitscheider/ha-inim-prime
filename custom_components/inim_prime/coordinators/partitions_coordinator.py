@@ -1,17 +1,18 @@
 import logging
 from datetime import timedelta
+from types import MappingProxyType
 from typing import Dict
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from inim.prime.primelan.client import InimPrimeClient
-from inim.prime.primelan.models.partition import PartitionStatus
+from gateway import InimPrimeGateway
+from models.partitions import UnifiedPartition
 
 _LOGGER = logging.getLogger(__name__)
 
-class InimPrimePartitionsUpdateCoordinator(DataUpdateCoordinator[Dict[int, PartitionStatus]]):
+class InimPrimePartitionsUpdateCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch partitions from the panel."""
 
     def __init__(
@@ -19,7 +20,7 @@ class InimPrimePartitionsUpdateCoordinator(DataUpdateCoordinator[Dict[int, Parti
             hass: HomeAssistant,
             update_interval: timedelta,
             entry: ConfigEntry,
-            client: InimPrimeClient,
+            gateway: InimPrimeGateway,
     ):
         super().__init__(
             hass = hass,
@@ -28,17 +29,12 @@ class InimPrimePartitionsUpdateCoordinator(DataUpdateCoordinator[Dict[int, Parti
             name = "INIM Prime Partitions",
             update_interval = update_interval,
         )
-        self.client = client
-        self.data: Dict[int, PartitionStatus] = {}  # just an empty dict
+        self.gateway = gateway
         self.entry = entry
 
-    async def _async_update_data(self) -> Dict[int, PartitionStatus]:
+    async def _async_update_data(self) -> MappingProxyType[int, UnifiedPartition]:
         """Fetch data from API."""
         try:
-            partitions = await self.client.get_partitions_status()
-
-            self.data = partitions
-
-            return self.data
+            return await self.gateway.update_partitions()
         except Exception as err:
             raise UpdateFailed(err) from err

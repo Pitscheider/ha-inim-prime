@@ -1,9 +1,9 @@
+from models.system_faults import UNIFIED_EXPOSED_SYSTEM_FAULTS
 from .coordinators import InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator, InimPrimeSystemFaultsUpdateCoordinator
 from .const import DOMAIN, ZONES_COORDINATOR, PARTITIONS_COORDINATOR, SYSTEM_FAULTS_COORDINATOR
 from .entities.panel import SystemFaultBinarySensor
 from .entities.partition import PartitionAlarmMemoryBinarySensor
 from .entities.zone import ZoneStateBinarySensor, ZoneAlarmMemoryBinarySensor
-from inim.prime.primelan.models.system_faults import EXPOSED_SYSTEM_FAULTS
 
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
@@ -15,14 +15,14 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 
     entities = []
 
-    for zone in zones_coordinator.data.values():
+    for zone in zones_coordinator.gateway.zones.values():
         entities.append(ZoneStateBinarySensor(zones_coordinator, entry, zone))
         entities.append(ZoneAlarmMemoryBinarySensor(zones_coordinator, entry, zone))
 
-    for partition in partitions_coordinator.data.values():
+    for partition in partitions_coordinator.gateway.partitions.values():
         entities.append(PartitionAlarmMemoryBinarySensor(partitions_coordinator, entry, partition))
 
-    for exposedSystemFault in EXPOSED_SYSTEM_FAULTS:
+    for exposedSystemFault in UNIFIED_EXPOSED_SYSTEM_FAULTS:
         entities.append(
             SystemFaultBinarySensor(system_faults_coordinator, entry, exposedSystemFault)
         )

@@ -4,8 +4,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from inim.prime.primelan.client import InimPrimeClient
+from adapters import NativeAdapter, PrimelanAdapter
+from inim.prime.native.client import Client as NativeClient
+from inim.prime.primelan.client import InimPrimeClient as PrimelanClient
+
+from gateway import InimPrimeGateway
 from .const import (
     CONF_SERIAL_NUMBER,
     DOMAIN,
@@ -30,7 +35,8 @@ from .const import (
     CONF_PARTITIONS_SCAN_INTERVAL_DEFAULT,
     CONF_GSM_SCAN_INTERVAL_DEFAULT,
     CONF_SYSTEM_FAULTS_SCAN_INTERVAL_DEFAULT,
-    CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_DEFAULT,
+    CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_DEFAULT, CONF_HOST, CONF_PRIMELAN_API_KEY, CONF_PRIMELAN_USE_HTTPS, CONF_NATIVE,
+    CONF_PRIMELAN, CONF_NATIVE_PASSWORD, CONF_NATIVE_USE_OUTER_FRAME, CONF_NATIVE_PORT, CONF_NATIVE_PIN,
 )
 from .coordinators import (
     InimPrimeGSMUpdateCoordinator,
@@ -48,6 +54,37 @@ PLATFORMS = [
     "button",
     "event",
 ]
+
+def _build_gateway(entry: ConfigEntry) -> InimPrimeGateway:
+    """Construct adapters for whichever backend(s) are configured on this entry.
+
+    Presence of the "native" / "primelan" keys in entry.data is what decides
+    whether each backend is active -- there's no separate enable flag.
+    """
+    native_adapter = None
+    primelan_adapter = None
+
+    native_conf = entry.data.get(CONF_NATIVE)
+    if native_conf:
+        native_client = NativeClient(
+            host = native_conf[CONF_HOST],
+            password = native_conf[CONF_NATIVE_PASSWORD],
+            use_outer_frame = native_conf[CONF_NATIVE_USE_OUTER_FRAME],
+            port = native_conf[CONF_NATIVE_PORT],
+            pin = native_conf.get(CONF_NATIVE_PIN) or None,
+        )
+        native_adapter = NativeAdapter(native_client)
+
+    primelan_conf = entry.data.get(CONF_PRIMELAN)
+    if primelan_conf:
+        primelan_client = PrimelanClient(
+            host = primelan_conf[CONF_HOST],
+            api_key = primelan_conf[CONF_PRIMELAN_API_KEY],
+            use_https = primelan_conf.get(CONF_PRIMELAN_USE_HTTPS, True),
+        )
+        primelan_adapter = PrimelanAdapter(primelan_client)
+
+    return InimPrimeGateway(native = native_adapter, primelan = primelan_adapter)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -68,12 +105,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         serial_number = entry.data[CONF_SERIAL_NUMBER],
     )
 
-    host = entry.data["host"]
-    api_key = entry.data["api_key"]
-    use_https = entry.data.get("use_https", True)
-
-    client = InimPrimeClient(host = host, api_key = api_key, use_https = use_https)
-    await client.connect()
+    gateway = _build_gateway(entry)
+    await gateway.connect()
 
     ###
     ### Coordinators
@@ -102,50 +135,68 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_DEFAULT,
     )
 
+    inim_prime_coordinators: dict[str, DataUpdateCoordinator]
+
+    # Zones & partitions are always available (both backends support them).
     inim_prime_coordinators = {
         ZONES_COORDINATOR: InimPrimeZonesUpdateCoordinator(
             hass = hass,
             update_interval = timedelta(seconds = zones_scan_interval),
             entry = entry,
-            client = client,
+            gateway = gateway,
         ),
         PARTITIONS_COORDINATOR: InimPrimePartitionsUpdateCoordinator(
             hass = hass,
             update_interval = timedelta(seconds = partitions_scan_interval),
             entry = entry,
-            client = client,
-        ),
-        SYSTEM_FAULTS_COORDINATOR: InimPrimeSystemFaultsUpdateCoordinator(
-            hass = hass,
-            update_interval = timedelta(seconds = system_faults_scan_interval),
-            entry = entry,
-            client = client,
-        ),
-        GSM_COORDINATOR: InimPrimeGSMUpdateCoordinator(
-            hass = hass,
-            update_interval = timedelta(seconds = gsm_scan_interval),
-            entry = entry,
-            client = client,
-        ),
-        PANEL_LOG_EVENTS_COORDINATOR: InimPrimePanelLogEventsCoordinator(
-            hass = hass,
-            update_interval = timedelta(seconds = panel_log_events_scan_interval),
-            entry = entry,
-            client = client,
+            gateway = gateway,
         ),
     }
 
+    # GSM / system faults / log events are PrimeLAN-only today. On a
+    # native-only entry, these coordinators simply don't exist, and the
+    # corresponding platforms create zero entities for them (see their
+    # updated async_setup_entry, which does coordinators.get(...) and
+    # returns/skips when None).
+    if gateway.supports_system_faults:
+        inim_prime_coordinators[SYSTEM_FAULTS_COORDINATOR] = InimPrimeSystemFaultsUpdateCoordinator(
+            hass = hass,
+            update_interval = timedelta(seconds = system_faults_scan_interval),
+            entry = entry,
+            gateway = gateway,
+        )
+
+    if gateway.supports_gsm:
+        inim_prime_coordinators[GSM_COORDINATOR] = InimPrimeGSMUpdateCoordinator(
+            hass = hass,
+            update_interval = timedelta(seconds = gsm_scan_interval),
+            entry = entry,
+            gateway = gateway,
+        )
+
+    if gateway.supports_log_events:
+        inim_prime_coordinators[PANEL_LOG_EVENTS_COORDINATOR] = InimPrimePanelLogEventsCoordinator(
+            hass = hass,
+            update_interval = timedelta(seconds = panel_log_events_scan_interval),
+            entry = entry,
+            gateway = gateway,
+        )
+
     await inim_prime_coordinators[ZONES_COORDINATOR].async_config_entry_first_refresh()
     await inim_prime_coordinators[PARTITIONS_COORDINATOR].async_config_entry_first_refresh()
-    await inim_prime_coordinators[SYSTEM_FAULTS_COORDINATOR].async_config_entry_first_refresh()
-    await inim_prime_coordinators[GSM_COORDINATOR].async_config_entry_first_refresh()
 
-    await inim_prime_coordinators[PANEL_LOG_EVENTS_COORDINATOR].async_startup()
-    await inim_prime_coordinators[PANEL_LOG_EVENTS_COORDINATOR].async_config_entry_first_refresh()
+    if SYSTEM_FAULTS_COORDINATOR in inim_prime_coordinators:
+        await inim_prime_coordinators[SYSTEM_FAULTS_COORDINATOR].async_config_entry_first_refresh()
 
+    if GSM_COORDINATOR in inim_prime_coordinators:
+        await inim_prime_coordinators[GSM_COORDINATOR].async_config_entry_first_refresh()
+
+    if PANEL_LOG_EVENTS_COORDINATOR in inim_prime_coordinators:
+        await inim_prime_coordinators[PANEL_LOG_EVENTS_COORDINATOR].async_startup()
+        await inim_prime_coordinators[PANEL_LOG_EVENTS_COORDINATOR].async_config_entry_first_refresh()
 
     hass.data[DOMAIN][entry.entry_id] = {
-        "client": client,
+        "gateway": gateway,
         "coordinators": inim_prime_coordinators,
     }
 
@@ -193,7 +244,36 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if coordinator and hasattr(coordinator, "async_shutdown"):
                 await coordinator.async_shutdown()
 
-        # Close API client
-        await data["client"].close()
+        # Close API gateway
+        await data["gateway"].close()
 
     return unload_ok
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate old (flat, PrimeLAN-only) entries to the native/primelan split schema.
+
+    v1 entries always predate the native backend, so they're unconditionally
+    PrimeLAN-only: {serial_number, host, api_key, use_https} becomes
+    {serial_number, primelan: {host, api_key, use_https}}.
+
+    Unique IDs and entity unique_ids are keyed off serial_number and
+    zone/partition IDs, not the backend, so this migration doesn't touch
+    entity registry entries, names, or history.
+    """
+    if entry.version == 1:
+        new_data = {**entry.data}
+
+        new_data[CONF_PRIMELAN] = {
+            CONF_HOST: new_data.pop(CONF_HOST),
+            CONF_PRIMELAN_API_KEY: new_data.pop(CONF_PRIMELAN_API_KEY),
+            CONF_PRIMELAN_USE_HTTPS: new_data.pop(CONF_PRIMELAN_USE_HTTPS, True),
+        }
+
+        hass.config_entries.async_update_entry(
+            entry,
+            data = new_data,
+            version = 2,
+            minor_version = 0,
+        )
+
+    return True

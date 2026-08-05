@@ -1,14 +1,31 @@
 DOMAIN = "inim_prime"
 
 CONF_HOST = "host"
-CONF_API_KEY = "api_key"
-CONF_USE_HTTPS = "use_https"
+CONF_PRIMELAN_API_KEY = "api_key"
+CONF_PRIMELAN_USE_HTTPS = "use_https"
 CONF_SERIAL_NUMBER = "serial_number"
 CONF_PANEL_LOG_EVENTS_FETCH_LIMIT = "panel_log_events_fetch_limit"
 CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT = 40
 CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER = 3
 CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MIN = 10
 CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX = 100
+
+# --- Backend section keys (top-level in entry.data) ---
+# entry.data holds: {serial_number, native?: {...}, primelan?: {...}}
+# At least one of "native" / "primelan" must be present. Presence is what
+# gates a backend on/off -- there is no separate enabled flag.
+CONF_NATIVE = "native"
+CONF_PRIMELAN = "primelan"
+
+# --- Native connection fields (nested under entry.data["native"]) ---
+CONF_NATIVE_PORT = "port"
+CONF_NATIVE_PASSWORD = "password"
+CONF_NATIVE_PIN = "pin"
+CONF_NATIVE_USE_OUTER_FRAME = "use_outer_frame"
+
+CONF_NATIVE_PORT_DEFAULT = 6004  # inim.prime.native.const.Panel.DEFAULT_PORT
+CONF_NATIVE_USE_OUTER_FRAME_DEFAULT = True  # True when connecting via the PrimeLAN card
+
 
 # Coordinators
 ZONES_COORDINATOR = "zones_coordinator"

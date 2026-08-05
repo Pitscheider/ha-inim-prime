@@ -49,8 +49,7 @@ class GSMSupplyVoltageSensor(
 
     @property
     def native_value(self) -> float | None:
-        gsm = self.coordinator.data
-        return gsm.supply_voltage
+        return self.coordinator.gateway.gsm.supply_voltage
 
 
 class GSMOperatorSensor(
@@ -77,8 +76,8 @@ class GSMOperatorSensor(
 
     @property
     def native_value(self) -> str | None:
-        gsm = self.coordinator.data
-        return gsm.operator
+        return self.coordinator.gateway.gsm.operator
+
 
 
 class GSMSignalStrengthSensor(
@@ -107,8 +106,7 @@ class GSMSignalStrengthSensor(
 
     @property
     def native_value(self) -> float | None:
-        gsm = self.coordinator.data
-        return gsm.signal_strength
+        return self.coordinator.gateway.gsm.signal_strength
 
 
 class GSMCreditSensor(
@@ -135,5 +133,4 @@ class GSMCreditSensor(
 
     @property
     def native_value(self) -> str | None:
-        gsm = self.coordinator.data
-        return gsm.credit
+        return self.coordinator.gateway.gsm.credit

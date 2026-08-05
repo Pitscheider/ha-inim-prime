@@ -1,18 +1,19 @@
 import logging
 
 from datetime import timedelta
+from types import MappingProxyType
 from typing import Dict
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from inim.prime.primelan.client import InimPrimeClient
-from inim.prime.primelan.models.zone import ZoneStatus
+from gateway import InimPrimeGateway
+from models.zones import UnifiedZone
 
 _LOGGER = logging.getLogger(__name__)
 
-class InimPrimeZonesUpdateCoordinator(DataUpdateCoordinator[Dict[int, ZoneStatus]]):
+class InimPrimeZonesUpdateCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch zones from the panel."""
 
     def __init__(
@@ -20,7 +21,7 @@ class InimPrimeZonesUpdateCoordinator(DataUpdateCoordinator[Dict[int, ZoneStatus
             hass: HomeAssistant,
             update_interval: timedelta,
             entry: ConfigEntry,
-            client: InimPrimeClient,
+            gateway: InimPrimeGateway,
     ):
         super().__init__(
             hass = hass,
@@ -29,17 +30,12 @@ class InimPrimeZonesUpdateCoordinator(DataUpdateCoordinator[Dict[int, ZoneStatus
             name = "INIM Prime Zones",
             update_interval = update_interval,
         )
-        self.client = client
-        self.data: Dict[int, ZoneStatus] = {}  # just an empty dict
+        self.gateway = gateway
         self.entry = entry
 
-    async def _async_update_data(self) -> Dict[int, ZoneStatus]:
+    async def _async_update_data(self) -> MappingProxyType[int, UnifiedZone]:
         """Fetch data from API."""
         try:
-            zones = await self.client.get_zones_status()
-
-            self.data = zones
-
-            return self.data
+            return await self.gateway.update_zones()
         except Exception as err:
             raise UpdateFailed(err) from err
