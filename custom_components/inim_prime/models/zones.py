@@ -7,6 +7,7 @@ class UnifiedZoneState(Enum):
     STANDBY = auto
     ALARM = auto
     SHORT_CIRCUIT = auto
+    UNKNOWN = auto
 
 
 @dataclass(frozen = True)

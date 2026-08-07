@@ -5,7 +5,7 @@
   "documentation": "https://github.com/Pitscheider/ha_inim_prime",
   "requirements": [
     "inim-prime-primelan@git+https://github.com/Pitscheider/inim-prime-primelan.git@9da098a2f9123732551b79b861fa5d38e5a3f81c",
-    "inim-prime-native@git+https://github.com/Pitscheider/inim-prime-native.git@98417b0557670edc1118ad4351c3adcb2d3d5a48"
+    "inim-prime-native@git+https://github.com/Pitscheider/inim-prime-native.git@282beaef194b280ec2480a78e2798552b255fe3c"
   ],
   "codeowners": [
     "@Pitscheider"

@@ -44,6 +44,7 @@ _ZONE_STATE_MAP: dict[NativeZoneState, UnifiedZoneState] = {
     NativeZoneState.ALARM: UnifiedZoneState.ALARM,
     NativeZoneState.TAMPER: UnifiedZoneState.TAMPER,
     NativeZoneState.SHORT_CIRCUIT: UnifiedZoneState.SHORT_CIRCUIT,
+    NativeZoneState.UNKNOWN: UnifiedZoneState.UNKNOWN,
 }
 
 _PARTITION_STATE_MAP: dict[NativePartitionState, UnifiedPartitionState] = {
