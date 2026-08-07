@@ -85,7 +85,7 @@ def _zone_to_unified(zone: NativeZone, terminal: NativeTerminal) -> UnifiedZone:
             terminal_id = terminal.terminal_id,
             label = zone.label,
             partitions = zone.zone_setting.partitions,
-            state = _ZONE_STATE_MAP[zone.zone_status.state],
+            state = _ZONE_STATE_MAP.get(zone.zone_status.state, UnifiedZoneState.UNKNOWN),
             bypass = zone.zone_status.bypass,
             alarm_memory = zone.zone_status.alarm_memory,
             native_status_bytes = terminal.terminal_status.raw,
