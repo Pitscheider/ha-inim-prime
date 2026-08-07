@@ -56,6 +56,7 @@ async def async_get_config_entry_diagnostics(
                 "bypass": zone.bypass,
                 "alarm_memory": zone.alarm_memory,
                 "native_status_bytes": zone.native_status_bytes,
+                "native_state_str": zone.native_state_str,
             }
             for zone_id, zone in zones_coordinator.data.items()
         },
@@ -126,6 +127,7 @@ async def async_get_device_diagnostics(
                         "bypass": zone.bypass,
                         "alarm_memory": zone.alarm_memory,
                         "native_status_bytes": zone.native_status_bytes,
+                        "native_state_str": zone.native_state_str,
                     }
 
             elif "_partition_" in dev_id:

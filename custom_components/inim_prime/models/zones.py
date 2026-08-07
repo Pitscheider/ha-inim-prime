@@ -20,6 +20,7 @@ class UnifiedZone:
     bypass: bool | None
     alarm_memory: bool | None
     native_status_bytes: bytes | None = None
+    native_state_str: str | None = None
 
     ### Special methods
     def __hash__(self) -> int:

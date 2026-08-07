@@ -89,6 +89,7 @@ def _zone_to_unified(zone: NativeZone, terminal: NativeTerminal) -> UnifiedZone:
             bypass = zone.zone_status.bypass,
             alarm_memory = zone.zone_status.alarm_memory,
             native_status_bytes = terminal.terminal_status.raw,
+            native_state_str = zone.zone_status.state.name,
         )
 
     return unified_zone
