@@ -143,7 +143,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     inim_prime_coordinators = {
         ZONES_COORDINATOR: InimPrimeZonesUpdateCoordinator(
             hass = hass,
-            update_interval = timedelta(seconds = zones_scan_interval),
+            update_interval = timedelta(milliseconds = 300),
+            # update_interval = timedelta(seconds = zones_scan_interval),
             entry = entry,
             gateway = gateway,
         ),
