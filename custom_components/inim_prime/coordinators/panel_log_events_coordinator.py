@@ -7,8 +7,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from gateway import InimPrimeGateway
-from models.log_events import UnifiedLogEvent
+from ..gateway import InimPrimeGateway
+from ..models.log_events import UnifiedLogEvent
 from ..const import (
     DOMAIN,
     CONF_SERIAL_NUMBER,

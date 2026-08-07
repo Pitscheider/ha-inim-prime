@@ -26,11 +26,25 @@ from inim.prime.primelan.models.zone import (
     ZoneStatus as PrimelanZoneStatus,
     ZoneBypassSetRequest,
 )
-from models.gsm import UnifiedGSM
-from models.log_events import UnifiedLogEvent
-from models.partitions import UnifiedPartitionState, UnifiedArmingStatus, UnifiedPartition
-from models.system_faults import UnifiedSystemFaults, UnifiedSystemFault
-from models.zones import UnifiedZoneState, UnifiedZone
+from ..models.gsm import (
+    UnifiedGSM,
+)
+from ..models.log_events import (
+    UnifiedLogEvent,
+)
+from ..models.partitions import (
+    UnifiedPartitionState,
+    UnifiedArmingStatus,
+    UnifiedPartition,
+)
+from ..models.system_faults import (
+    UnifiedSystemFaults,
+    UnifiedSystemFault,
+)
+from ..models.zones import (
+    UnifiedZoneState,
+    UnifiedZone,
+)
 
 _ZONE_STATE_MAP: dict[PrimelanZoneState, UnifiedZoneState] = {
     PrimelanZoneState.TAMPER: UnifiedZoneState.TAMPER,

@@ -7,8 +7,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from gateway import InimPrimeGateway
-from models.partitions import UnifiedPartition
+from ..gateway import InimPrimeGateway
+from ..models.partitions import UnifiedPartition
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -7,7 +7,11 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from models.partitions import UnifiedPartitionState, UnifiedPartition, UnifiedArmingStatus
+from ..models.partitions import (
+    UnifiedPartitionState,
+    UnifiedPartition,
+    UnifiedArmingStatus,
+)
 from ..coordinators import InimPrimePartitionsUpdateCoordinator
 from ..const import INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER, DOMAIN
 

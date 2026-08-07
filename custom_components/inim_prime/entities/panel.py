@@ -9,8 +9,8 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from models.log_events import UnifiedLogEvent
-from models.system_faults import UnifiedSystemFault
+from ..models.log_events import UnifiedLogEvent
+from ..models.system_faults import UnifiedSystemFault
 from ..const import INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER, DOMAIN
 from ..coordinators import InimPrimePanelLogEventsCoordinator, InimPrimeSystemFaultsUpdateCoordinator, \
     InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator

@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from gateway import InimPrimeGateway
-from models.log_events import UnifiedLogEvent as PanelLogEvent
+from ..gateway import InimPrimeGateway
+from ..models.log_events import UnifiedLogEvent as PanelLogEvent
 
 
 # ───────────────

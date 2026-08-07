@@ -5,8 +5,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from gateway import InimPrimeGateway
-from models.gsm import UnifiedGSM
+from ..gateway import InimPrimeGateway
+from ..models.gsm import UnifiedGSM
 
 _LOGGER = logging.getLogger(__name__)
 

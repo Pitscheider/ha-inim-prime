@@ -5,8 +5,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from gateway import InimPrimeGateway
-from models.system_faults import UnifiedSystemFaults
+from ..gateway import InimPrimeGateway
+from ..models.system_faults import UnifiedSystemFaults
 
 _LOGGER = logging.getLogger(__name__)
 

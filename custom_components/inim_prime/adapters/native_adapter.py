@@ -21,10 +21,22 @@ from inim.prime.native.models.partitions import (
 from inim.prime.native.models.outputs import (
     Output as NativeOutput,
 )
-from inim.prime.native.models.zones import Zone as NativeZone, ZoneState as NativeZoneState
-from models.outputs import UnifiedOutput
-from models.partitions import UnifiedArmingStatus, UnifiedPartition, UnifiedPartitionState
-from models.zones import UnifiedZoneState, UnifiedZone
+from inim.prime.native.models.zones import (
+    Zone as NativeZone,
+    ZoneState as NativeZoneState,
+)
+from ..models.outputs import (
+    UnifiedOutput,
+)
+from ..models.partitions import (
+    UnifiedArmingStatus,
+    UnifiedPartition,
+    UnifiedPartitionState,
+)
+from ..models.zones import (
+    UnifiedZoneState,
+    UnifiedZone,
+)
 
 
 _ZONE_STATE_MAP: dict[NativeZoneState, UnifiedZoneState] = {
@@ -171,9 +183,6 @@ class NativeAdapter:
     def count_zone_alarm_memories(self) -> int:
         return sum(1 for zone in self._zones.values() if zone.alarm_memory == True)
 
-    @property
-    def count_partition_alarm_memories(self) -> int:
-        return sum(1 for partition in self._partitions.values() if partition.alarm_memory == True)
 
     def get_zone(self, zone_id: int) -> UnifiedZone | None:
         return self._zones.get(zone_id)
