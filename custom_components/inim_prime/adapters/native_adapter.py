@@ -184,6 +184,9 @@ class NativeAdapter:
     def count_zone_alarm_memories(self) -> int:
         return sum(1 for zone in self._zones.values() if zone.alarm_memory == True)
 
+    @property
+    def count_partition_alarm_memories(self) -> int:
+        return sum(1 for partition in self._partitions.values() if partition.alarm_memory == True)
 
     def get_zone(self, zone_id: int) -> UnifiedZone | None:
         return self._zones.get(zone_id)
