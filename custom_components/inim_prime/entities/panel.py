@@ -178,7 +178,7 @@ class BypassedZonesCountSensor(
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.gateway.bypassed_zones_count
+        return self.coordinator.gateway.count_bypassed_zones
 
 
 class DisableAllZoneBypassesButton(
