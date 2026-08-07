@@ -25,6 +25,9 @@ from inim.prime.native.models.zones import (
     Zone as NativeZone,
     ZoneState as NativeZoneState,
 )
+from inim.prime.native.models.terminals import (
+    Terminal as NativeTerminal,
+)
 from ..models.outputs import (
     UnifiedOutput,
 )
@@ -62,26 +65,30 @@ _ARMING_STATUS_MAP: dict[NativeArmingStatus, UnifiedArmingStatus] = {
 _UNIFIED_ARMING_STATUS_MAP: dict[UnifiedArmingStatus, NativeArmingStatus] = {v: k for k, v in _ARMING_STATUS_MAP.items()}
 
 
-def _zone_to_unified(zone: NativeZone) -> UnifiedZone:
+def _zone_to_unified(zone: NativeZone, terminal: NativeTerminal) -> UnifiedZone:
     unified_zone: UnifiedZone
 
     if zone.zone_status is None:
         unified_zone = UnifiedZone(
             zone_id = zone.zone_id,
+            terminal_id = terminal.terminal_id,
             label = zone.label,
             partitions = zone.zone_setting.partitions,
             state = None,
             bypass = None,
             alarm_memory = None,
+            native_status_bytes = None,
         )
     else:
         unified_zone = UnifiedZone(
             zone_id = zone.zone_id,
+            terminal_id = terminal.terminal_id,
             label = zone.label,
             partitions = zone.zone_setting.partitions,
             state = _ZONE_STATE_MAP[zone.zone_status.state],
             bypass = zone.zone_status.bypass,
             alarm_memory = zone.zone_status.alarm_memory,
+            native_status_bytes = terminal.terminal_status.raw,
         )
 
     return unified_zone
@@ -198,11 +205,13 @@ class NativeAdapter:
     # Updaters
     # ------------------------------------------------------------------
     async def update_zones(self) -> MappingProxyType[int, UnifiedZone]:
-        await self._client.update_zone_terminals()
+        native_zone_terminals = await self._client.update_zone_terminals()
 
         result: dict[int, UnifiedZone] = {}
-        for zone_id, zone in self._client.zones.items():
-            result[zone_id] = _zone_to_unified(zone)
+        for terminal_id, zone_terminal in native_zone_terminals.items():
+            for zone in zone_terminal.zones:
+                result[zone.zone_id] = _zone_to_unified(zone, zone_terminal)
+
         self._zones = result
         return self.zones
 

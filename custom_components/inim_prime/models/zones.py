@@ -13,11 +13,13 @@ class UnifiedZoneState(Enum):
 @dataclass(frozen = True)
 class UnifiedZone:
     zone_id: int
+    terminal_id: int
     label: str
     partitions: frozenset[int] | None
     state: UnifiedZoneState | None
     bypass: bool | None
     alarm_memory: bool | None
+    native_status_bytes: bytes | None = None
 
     ### Special methods
     def __hash__(self) -> int:

@@ -91,6 +91,7 @@ def _zone_to_unified(zone: PrimelanZoneStatus) -> UnifiedZone:
 
     unified_zone = UnifiedZone(
         zone_id = zone.id,
+        terminal_id = zone.terminal_id,
         label = zone.name,
         partitions = None,
         state = _ZONE_STATE_MAP[zone.state],

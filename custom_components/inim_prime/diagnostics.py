@@ -49,18 +49,20 @@ async def async_get_config_entry_diagnostics(
         },
         "zones": {
             zone_id: {
-                "id": zone.zone_id,
+                "zone_id": zone.zone_id,
+                "terminal": zone.terminal_id,
                 "label": zone.label,
                 "state": zone.state.name if zone.state is not None else None,
                 "bypass": zone.bypass,
                 "alarm_memory": zone.alarm_memory,
+                "native_status_bytes": zone.native_status_bytes,
             }
             for zone_id, zone in zones_coordinator.data.items()
         },
         "partitions": {
             partition_id: {
                 "id": partition.partition_id,
-                "name": partition.label,
+                "label": partition.label,
                 "partition_state": partition.partition_state.name if partition.partition_state is not None else None,
                 "arming_status": partition.arming_status.name if partition.arming_status is not None else None,
                 "alarm_memory": partition.alarm_memory,
@@ -118,10 +120,12 @@ async def async_get_device_diagnostics(
                     device_info = {
                         "device_type": "zone",
                         "zone_id": zone.zone_id,
+                        "terminal": zone.terminal_id,
                         "zone_name": zone.label,
                         "state": zone.state.name if zone.state is not None else None,
                         "bypass": zone.bypass,
                         "alarm_memory": zone.alarm_memory,
+                        "native_status_bytes": zone.native_status_bytes,
                     }
 
             elif "_partition_" in dev_id:
