@@ -1,4 +1,4 @@
-from models.system_faults import UNIFIED_EXPOSED_SYSTEM_FAULTS
+from .models.system_faults import UNIFIED_EXPOSED_SYSTEM_FAULTS
 from .coordinators import InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator, InimPrimeSystemFaultsUpdateCoordinator
 from .const import DOMAIN, ZONES_COORDINATOR, PARTITIONS_COORDINATOR, SYSTEM_FAULTS_COORDINATOR
 from .entities.panel import SystemFaultBinarySensor
