@@ -3,15 +3,15 @@ from enum import Enum, auto
 
 
 class UnifiedPartitionState(Enum):
-    OK = auto
-    ALARM = auto
-    TAMPER = auto
+    OK = auto()
+    ALARM = auto()
+    TAMPER = auto()
 
 class UnifiedArmingStatus(Enum):
-    ARM_AWAY = auto
-    ARM_STAY = auto
-    ARM_INSTANT = auto
-    DISARMED = auto
+    ARM_AWAY = auto()
+    ARM_STAY = auto()
+    ARM_INSTANT = auto()
+    DISARMED = auto()
 
 @dataclass(frozen=True)
 class UnifiedPartition:

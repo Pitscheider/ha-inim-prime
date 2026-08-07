@@ -3,22 +3,22 @@ from enum import Enum, auto
 from typing import FrozenSet
 
 class UnifiedSystemFault(Enum):
-    RESERVED_0 = auto
-    RESERVED_1 = auto
-    LOW_BATTERY = auto
-    NETWORK_FAULT = auto
-    NO_TELEPHONE_LINE = auto
-    RADIO_JAMMING = auto
-    LOW_BATTERY_WIRELESS = auto
-    WIRELESS_DEVICE_DISAPPEARANCE = auto
-    GSM_FAULT = auto
-    SENSOR_DIRTY = auto
-    ZONE_FAULT = auto
-    SIRENS_FAULT = auto
-    POWER_SUPPLY_FAULT = auto
-    RADIO_KEYBOARDS_FAULT = auto
-    SABOTAGE_FAULT = auto
-    INTERNET_FAULT = auto
+    RESERVED_0 = auto()
+    RESERVED_1 = auto()
+    LOW_BATTERY = auto()
+    NETWORK_FAULT = auto()
+    NO_TELEPHONE_LINE = auto()
+    RADIO_JAMMING = auto()
+    LOW_BATTERY_WIRELESS = auto()
+    WIRELESS_DEVICE_DISAPPEARANCE = auto()
+    GSM_FAULT = auto()
+    SENSOR_DIRTY = auto()
+    ZONE_FAULT = auto()
+    SIRENS_FAULT = auto()
+    POWER_SUPPLY_FAULT = auto()
+    RADIO_KEYBOARDS_FAULT = auto()
+    SABOTAGE_FAULT = auto()
+    INTERNET_FAULT = auto()
 
 UNIFIED_EXPOSED_SYSTEM_FAULTS: FrozenSet[UnifiedSystemFault] = frozenset({
     UnifiedSystemFault.LOW_BATTERY,

@@ -3,11 +3,11 @@ from enum import Enum, auto
 
 
 class UnifiedZoneState(Enum):
-    TAMPER = auto
-    STANDBY = auto
-    ALARM = auto
-    SHORT_CIRCUIT = auto
-    UNKNOWN = auto
+    TAMPER = auto()
+    STANDBY = auto()
+    ALARM = auto()
+    SHORT_CIRCUIT = auto()
+    UNKNOWN = auto()
 
 
 @dataclass(frozen = True)
