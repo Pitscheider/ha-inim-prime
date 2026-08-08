@@ -2,32 +2,32 @@ from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySen
 from homeassistant.components.button import ButtonEntity
 from homeassistant.components.select import SelectEntity
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..custom_types import InimPrimeConfigEntry
 from ..models.partitions import (
     UnifiedPartitionState,
     UnifiedPartition,
     UnifiedArmingStatus,
 )
 from ..coordinators import InimPrimePartitionsUpdateCoordinator
-from ..const import INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER, DOMAIN
+from ..const import INIM_PRIME_DEVICE_MANUFACTURER, DOMAIN
 
 
 def create_partition_device_info(
-        entry: ConfigEntry,
+        entry: InimPrimeConfigEntry,
         partition_id: int,
         partition_name: str,
         domain: str = DOMAIN,
 ) -> DeviceInfo:
     return DeviceInfo(
-        identifiers = {(domain, f"{entry.data[CONF_SERIAL_NUMBER]}_partition_{partition_id}")},
+        identifiers = {(domain, f"{entry.runtime_data.serial_number}_partition_{partition_id}")},
         name = f"Partition {partition_name}",
         model = "Prime Partition",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        via_device = (domain, entry.data[CONF_SERIAL_NUMBER]),
+        via_device = (domain, entry.runtime_data.serial_number),
     )
 
 
@@ -43,13 +43,13 @@ class PartitionStateSensor(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             partition: UnifiedPartition,
     ):
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_partition_{self.partition_id}_state"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_partition_{self.partition_id}_state"
 
         self._attr_device_info = create_partition_device_info(
             entry = entry,
@@ -76,13 +76,13 @@ class PartitionArmingStatusSelect(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             partition: UnifiedPartition
     ):
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_partition_{self.partition_id}_mode"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_partition_{self.partition_id}_mode"
 
         self._attr_device_info = create_partition_device_info(
             entry = entry,
@@ -117,13 +117,13 @@ class ResetPartitionMemoryButton(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             partition: UnifiedPartition,
     ):
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_partition_{self.partition_id}_clear_alarm_memory"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_partition_{self.partition_id}_clear_alarm_memory"
 
         self._attr_device_info = create_partition_device_info(
             entry = entry,
@@ -151,13 +151,13 @@ class PartitionAlarmMemoryBinarySensor(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             partition: UnifiedPartition
     ):
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_partition_{self.partition_id}_alarm_memory"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_partition_{self.partition_id}_alarm_memory"
 
         self._attr_device_info = create_partition_device_info(
             entry = entry,

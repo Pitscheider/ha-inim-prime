@@ -1,27 +1,27 @@
 from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.components.switch import SwitchEntity, SwitchDeviceClass
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..custom_types import InimPrimeConfigEntry
 from ..models.zones import UnifiedZone, UnifiedZoneState
 from ..coordinators import InimPrimeZonesUpdateCoordinator
-from ..const import INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER, DOMAIN
+from ..const import INIM_PRIME_DEVICE_MANUFACTURER, DOMAIN
 
 def create_zone_device_info(
-        entry: ConfigEntry,
+        entry: InimPrimeConfigEntry,
         zone_id: int,
         zone_name: str,
         domain: str = DOMAIN,
 ) -> DeviceInfo:
     return DeviceInfo(
-        identifiers = {(domain, f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{zone_id}")},
+        identifiers = {(domain, f"{entry.runtime_data.serial_number}_zone_{zone_id}")},
         name = f"Zone {zone_name}",
         model = "Prime Zone",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        via_device = (domain, entry.data[CONF_SERIAL_NUMBER]),
+        via_device = (domain, entry.runtime_data.serial_number),
     )
 
 
@@ -34,13 +34,13 @@ class ZoneStateBinarySensor(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
         self.zone_id = zone.zone_id
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{self.zone_id}_triggered"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_zone_{self.zone_id}_triggered"
 
         self._attr_device_info = create_zone_device_info(
             entry = entry,
@@ -72,13 +72,13 @@ class ZoneStateSensor(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
         self.zone_id = zone.zone_id
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{self.zone_id}_state"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_zone_{self.zone_id}_state"
 
         self._attr_device_info = create_zone_device_info(
             entry = entry,
@@ -106,13 +106,13 @@ class ZoneAlarmMemoryBinarySensor(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
         self.zone_id = zone.zone_id
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{self.zone_id}_alarm_memory"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_zone_{self.zone_id}_alarm_memory"
 
         self._attr_device_info = create_zone_device_info(
             entry = entry,
@@ -139,13 +139,13 @@ class ZoneBypassSwitch(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
         self.zone_id = zone.zone_id
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zone_{self.zone_id}_bypass"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_zone_{self.zone_id}_bypass"
 
         self._attr_device_info = create_zone_device_info(
             entry = entry,

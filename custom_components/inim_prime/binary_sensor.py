@@ -1,17 +1,16 @@
+from .custom_types import InimPrimeConfigEntry
 from .models.system_faults import UNIFIED_EXPOSED_SYSTEM_FAULTS
-from .coordinators import InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator, InimPrimeSystemFaultsUpdateCoordinator
-from .const import DOMAIN, ZONES_COORDINATOR, PARTITIONS_COORDINATOR, SYSTEM_FAULTS_COORDINATOR
+
 from .entities.panel import SystemFaultBinarySensor
 from .entities.partition import PartitionAlarmMemoryBinarySensor
 from .entities.zone import ZoneStateBinarySensor, ZoneAlarmMemoryBinarySensor
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities) -> None:
     """Set up INIM Prime binary sensors from a config entry."""
-    coordinators = hass.data[DOMAIN][entry.entry_id]["coordinators"]
-    zones_coordinator: InimPrimeZonesUpdateCoordinator | None = coordinators.get(ZONES_COORDINATOR)
-    partitions_coordinator: InimPrimePartitionsUpdateCoordinator | None = coordinators.get(PARTITIONS_COORDINATOR)
-    system_faults_coordinator: InimPrimeSystemFaultsUpdateCoordinator | None = coordinators.get(SYSTEM_FAULTS_COORDINATOR)
+    zones_coordinator = entry.runtime_data.coordinators.zones
+    partitions_coordinator = entry.runtime_data.coordinators.partitions
+    system_faults_coordinator = entry.runtime_data.coordinators.system_faults
 
     entities = []
 

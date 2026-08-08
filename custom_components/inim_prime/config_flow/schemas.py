@@ -1,57 +1,33 @@
-"""Schema builders and connection testers for the INIM Prime config flow.
-
-Kept separate from config_flow.py so the flow-step logic (navigation,
-state accumulation) stays readable and the "how do I build this form" /
-"how do I test this backend" concerns are modular and independently
-testable.
-"""
 from __future__ import annotations
-
 from types import MappingProxyType
 from typing import Any
 
 import voluptuous as vol
 from homeassistant.data_entry_flow import section
-from homeassistant.helpers.selector import TextSelector, TextSelectorType, TextSelectorConfig, NumberSelector, \
-    NumberSelectorConfig, NumberSelectorMode
-
-from config_flow import NativeConfig, PrimelanConfig, FlowData
-from inim.prime.native.client import Client as NativeClient
-from inim.prime.primelan.client import InimPrimeClient
-
-from .const import (
-    CONF_HOST,
-    CONF_NATIVE,
-    CONF_NATIVE_PASSWORD,
-    CONF_NATIVE_PIN,
-    CONF_NATIVE_PORT,
-    CONF_NATIVE_PORT_DEFAULT,
-    CONF_NATIVE_USE_OUTER_FRAME,
-    CONF_NATIVE_USE_OUTER_FRAME_DEFAULT,
-    CONF_PRIMELAN,
-    CONF_PRIMELAN_API_KEY,
-    CONF_PRIMELAN_USE_HTTPS,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MIN,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
-    CONF_SCAN_INTERVAL_MIN,
-    CONF_SCAN_INTERVAL_MAX,
-    CONF_ZONES_SCAN_INTERVAL,
-    CONF_PARTITIONS_SCAN_INTERVAL,
-    CONF_GSM_SCAN_INTERVAL,
-    CONF_SYSTEM_FAULTS_SCAN_INTERVAL,
-    CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL,
-    CONF_ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT,
-    CONF_PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
-    CONF_ZONES_SCAN_INTERVAL_NATIVE_DEFAULT,
-    CONF_PARTITIONS_SCAN_INTERVAL_NATIVE_DEFAULT,
-    CONF_GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT,
-    CONF_SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
-    CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT, CONF_NATIVE_PASSWORD_DEFAULT, CONF_PRIMELAN_USE_HTTPS_DEFAULT,
-    CONF_NATIVE_USE_CUSTOM_PIN, CONF_NATIVE_USE_CUSTOM_PIN_DEFAULT,
+from homeassistant.helpers.selector import (
+    TextSelector, TextSelectorType, TextSelectorConfig,
+    NumberSelector, NumberSelectorConfig, NumberSelectorMode,
 )
 
+from .models import FlowData
+from ..const import (
+    CONF_HOST, CONF_NATIVE, CONF_NATIVE_PASSWORD, CONF_NATIVE_PIN,
+    CONF_NATIVE_PORT, CONF_NATIVE_PORT_DEFAULT, CONF_NATIVE_USE_OUTER_FRAME,
+    CONF_NATIVE_USE_OUTER_FRAME_DEFAULT, CONF_PRIMELAN, CONF_PRIMELAN_API_KEY,
+    CONF_PRIMELAN_USE_HTTPS, CONF_PANEL_LOG_EVENTS_FETCH_LIMIT,
+    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT, CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MIN,
+    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX, CONF_SCAN_INTERVAL_MIN, CONF_SCAN_INTERVAL_MAX,
+    CONF_ZONES_SCAN_INTERVAL, CONF_PARTITIONS_SCAN_INTERVAL, CONF_GSM_SCAN_INTERVAL,
+    CONF_SYSTEM_FAULTS_SCAN_INTERVAL, CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL,
+    CONF_ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT, CONF_PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    CONF_ZONES_SCAN_INTERVAL_NATIVE_DEFAULT, CONF_PARTITIONS_SCAN_INTERVAL_NATIVE_DEFAULT,
+    CONF_GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT, CONF_SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT, CONF_NATIVE_PASSWORD_DEFAULT,
+    CONF_PRIMELAN_USE_HTTPS_DEFAULT, CONF_NATIVE_USE_CUSTOM_PIN, CONF_NATIVE_USE_CUSTOM_PIN_DEFAULT,
+)
+
+# ... build_native_schema, build_primelan_schema, build_connection_schema,
+#     default_scan_intervals, build_options_schema — unchanged bodies, moved here
 
 # ----------------------------------------------------------------------
 # Per-backend connection schemas
@@ -255,7 +231,8 @@ def build_options_schema(
             max = CONF_SCAN_INTERVAL_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
-        )),
+        ))
+
         scan_interval_fields[vol.Required(
             CONF_SYSTEM_FAULTS_SCAN_INTERVAL,
             default = defaults.get(CONF_SYSTEM_FAULTS_SCAN_INTERVAL, CONF_SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT),
@@ -264,7 +241,8 @@ def build_options_schema(
             max = CONF_SCAN_INTERVAL_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
-        )),
+        ))
+
         scan_interval_fields[vol.Required(
             CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL,
             default = defaults.get(
@@ -275,7 +253,7 @@ def build_options_schema(
             max = CONF_SCAN_INTERVAL_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
-        )),
+        ))
 
     schema: dict = {
         vol.Required("scan_intervals"): section(vol.Schema(scan_interval_fields)),
@@ -290,62 +268,5 @@ def build_options_schema(
             max = CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
-        )),
+        ))
     return schema
-
-
-# ----------------------------------------------------------------------
-# Connection testing
-# ----------------------------------------------------------------------
-
-async def test_native_connection(native_conf: NativeConfig, host: str) -> None:
-    """Test a native connection without keeping it open (used by reconfigure)."""
-    client = NativeClient(
-        host = host,
-        password = native_conf.password,
-        use_outer_frame = native_conf.use_outer_frame,
-        port = native_conf.port,
-        pin = native_conf.pin,
-    )
-    await client.connect()
-    await client.initialize()
-    client.disconnect()
-
-
-async def test_native_connection_and_get_serial(native_conf: NativeConfig, host: str) -> str:
-    """Test a native connection and return the panel serial number.
-
-    Used during initial setup when Native is active: the serial number
-    (needed as the entry's unique_id) is retrieved automatically instead
-    of being asked to the user.
-    """
-    client = NativeClient(
-        host = host,
-        password = native_conf.password,
-        use_outer_frame = native_conf.use_outer_frame,
-        port = native_conf.port,
-        pin = native_conf.pin,
-    )
-    await client.connect()
-    await client.initialize()
-    try:
-        panel_info = client.panel_info
-        serial_number = panel_info[0] if panel_info else None
-    finally:
-        client.disconnect()
-
-    if not serial_number:
-        raise ValueError("Native panel did not report a serial number")
-
-    return serial_number
-
-async def test_primelan_connection(primelan_conf: PrimelanConfig, host: str) -> None:
-    """Test a PrimeLAN connection without keeping it open."""
-    client = InimPrimeClient(
-        host = host,
-        api_key = primelan_conf.api_key,
-        use_https = primelan_conf.use_https,
-    )
-    await client.connect()
-    await client.close()
-

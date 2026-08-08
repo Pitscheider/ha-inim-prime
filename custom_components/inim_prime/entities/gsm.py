@@ -1,24 +1,24 @@
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinators import InimPrimeGSMUpdateCoordinator
-from ..const import DOMAIN, INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER
+from ..const import DOMAIN, INIM_PRIME_DEVICE_MANUFACTURER
+from ..custom_types import InimPrimeConfigEntry
 
 
 def create_gsm_device_info(
-        entry: ConfigEntry,
+        entry: InimPrimeConfigEntry,
         domain: str = DOMAIN,
         sw_version: str | None = None
 ) -> DeviceInfo:
     return DeviceInfo(
-        identifiers = {(domain, f"{entry.data[CONF_SERIAL_NUMBER]}_gsm")},
+        identifiers = {(domain, f"{entry.runtime_data.serial_number}_gsm")},
         name = "GSM",
         model = "Prime GSM",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        via_device = (domain, entry.data[CONF_SERIAL_NUMBER]),
+        via_device = (domain, entry.runtime_data.serial_number),
         sw_version = sw_version,
     )
 
@@ -36,11 +36,11 @@ class GSMSupplyVoltageSensor(
     def __init__(
             self,
             coordinator: InimPrimeGSMUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_gsm_supply_voltage"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_gsm_supply_voltage"
 
         self._attr_device_info = create_gsm_device_info(
             entry = entry,
@@ -63,11 +63,11 @@ class GSMOperatorSensor(
     def __init__(
             self,
             coordinator: InimPrimeGSMUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_gsm_operator"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_gsm_operator"
 
         self._attr_device_info = create_gsm_device_info(
             entry = entry,
@@ -93,11 +93,11 @@ class GSMSignalStrengthSensor(
     def __init__(
             self,
             coordinator: InimPrimeGSMUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_gsm_signal_strength"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_gsm_signal_strength"
 
         self._attr_device_info = create_gsm_device_info(
             entry = entry,
@@ -120,11 +120,11 @@ class GSMCreditSensor(
     def __init__(
             self,
             coordinator: InimPrimeGSMUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_gsm_credit"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_gsm_credit"
 
         self._attr_device_info = create_gsm_device_info(
             entry = entry,

@@ -1,15 +1,21 @@
+from __future__ import annotations
+
 import logging
 
 from datetime import timedelta
 from types import MappingProxyType
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from ..gateway import InimPrimeGateway
 from ..models.zones import UnifiedZone
+
+if TYPE_CHECKING:
+    # only imported by the type checker -- never executes at runtime,
+    # so this can't participate in a circular import
+    from ..custom_types import InimPrimeConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,7 +26,7 @@ class InimPrimeZonesUpdateCoordinator(DataUpdateCoordinator):
             self,
             hass: HomeAssistant,
             update_interval: timedelta,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             gateway: InimPrimeGateway,
     ):
         super().__init__(

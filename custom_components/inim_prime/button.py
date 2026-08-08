@@ -1,14 +1,12 @@
-from .coordinators import InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator
-from .const import DOMAIN, ZONES_COORDINATOR, PARTITIONS_COORDINATOR
 from .entities.panel import DisableAllZoneBypassesButton, ResetAllPartitionMemoriesButton
 from .entities.partition import ResetPartitionMemoryButton
+from .custom_types import InimPrimeConfigEntry
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    coordinators = hass.data[DOMAIN][entry.entry_id]["coordinators"]
+async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities):
 
-    partitions_coordinator: InimPrimePartitionsUpdateCoordinator | None = coordinators.get(PARTITIONS_COORDINATOR)
-    zones_coordinator: InimPrimeZonesUpdateCoordinator | None = coordinators.get(ZONES_COORDINATOR)
+    partitions_coordinator = entry.runtime_data.coordinators.partitions
+    zones_coordinator = entry.runtime_data.coordinators.zones
 
     entities = []
 

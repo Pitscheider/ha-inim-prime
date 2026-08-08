@@ -4,28 +4,28 @@ from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySen
 from homeassistant.components.button import ButtonEntity
 from homeassistant.components.event import EventEntity
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..custom_types import InimPrimeConfigEntry
 from ..models.log_events import UnifiedLogEvent
 from ..models.system_faults import UnifiedSystemFault
-from ..const import INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER, DOMAIN
+from ..const import INIM_PRIME_DEVICE_MANUFACTURER, DOMAIN
 from ..coordinators import InimPrimePanelLogEventsCoordinator, InimPrimeSystemFaultsUpdateCoordinator, \
     InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator
 
 
 def create_panel_device_info(
-        entry: ConfigEntry,
+        entry: InimPrimeConfigEntry,
         domain: str = DOMAIN,
 ) -> DeviceInfo:
     return DeviceInfo(
-        identifiers = {(domain, entry.data[CONF_SERIAL_NUMBER])},
+        identifiers = {(domain, entry.runtime_data.serial_number)},
         name = "Inim Prime Panel",
         model = "Prime Panel",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        serial_number = entry.data[CONF_SERIAL_NUMBER],
+        serial_number = entry.runtime_data.serial_number,
     )
 
 
@@ -74,7 +74,7 @@ class SystemFaultBinarySensor(
     def __init__(
             self,
             coordinator: InimPrimeSystemFaultsUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             fault: UnifiedSystemFault,
     ):
         super().__init__(coordinator)
@@ -86,7 +86,7 @@ class SystemFaultBinarySensor(
             self._fault.name.replace("_", " ").title()
         )
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_panel_system_fault_{self._fault.name.lower()}"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_panel_system_fault_{self._fault.name.lower()}"
 
         self._attr_icon = SYSTEM_FAULT_ICONS.get(
             self._fault,
@@ -114,10 +114,10 @@ class PanelSupplyVoltageSensor(
     def __init__(
             self,
             coordinator: InimPrimeSystemFaultsUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_panel_supply_voltage"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_panel_supply_voltage"
         self._attr_device_info = create_panel_device_info(entry)
 
     @property
@@ -137,11 +137,11 @@ class PanelLogEventsEvent(
     def __init__(
             self,
             coordinator: InimPrimePanelLogEventsCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_panel_log_events"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_panel_log_events"
         self._attr_device_info = create_panel_device_info(entry)
 
     async def handle_events(self, log_events: list[UnifiedLogEvent]) -> None:
@@ -170,10 +170,10 @@ class BypassedZonesCountSensor(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_bypassed_zones_count"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_bypassed_zones_count"
         self._attr_device_info = create_panel_device_info(entry)
 
     @property
@@ -192,11 +192,11 @@ class DisableAllZoneBypassesButton(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_disable_all_zone_bypasses"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_disable_all_zone_bypasses"
 
         self._attr_device_info = create_panel_device_info(
             entry = entry,
@@ -218,11 +218,11 @@ class ResetAllPartitionMemoriesButton(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_clear_all_partitions_alarm_memory"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_clear_all_partitions_alarm_memory"
 
         self._attr_device_info = create_panel_device_info(
             entry = entry,
@@ -243,11 +243,11 @@ class ZonesAlarmMemoryCountSensor(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zones_alarm_memory_count"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_zones_alarm_memory_count"
         self._attr_device_info = create_panel_device_info(entry)
 
     @property
@@ -265,11 +265,11 @@ class PartitionsAlarmMemoryCountSensor(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_partitions_alarm_memory_count"
+        self._attr_unique_id = f"{entry.runtime_data.serial_number}_partitions_alarm_memory_count"
         self._attr_device_info = create_panel_device_info(entry)
 
     @property

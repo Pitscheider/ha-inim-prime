@@ -1,12 +1,9 @@
-from .coordinators import InimPrimeZonesUpdateCoordinator
-from .const import DOMAIN, ZONES_COORDINATOR
 from .entities.zone import ZoneBypassSwitch
+from .custom_types import InimPrimeConfigEntry
 
+async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities):
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    coordinators = hass.data[DOMAIN][entry.entry_id]["coordinators"]
-
-    zones_coordinator: InimPrimeZonesUpdateCoordinator | None = coordinators.get(ZONES_COORDINATOR)
+    zones_coordinator = entry.runtime_data.coordinators.zones
 
     entities = []
 

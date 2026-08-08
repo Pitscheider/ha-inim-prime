@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import logging
 from datetime import timedelta
-from typing import List
+from typing import List, TYPE_CHECKING
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -23,6 +24,10 @@ from ..helpers.panel_log_events import (
     serialize_panel_log_events,
     async_fetch_panel_log_events,
 )
+if TYPE_CHECKING:
+    # only imported by the type checker -- never executes at runtime,
+    # so this can't participate in a circular import
+    from ..custom_types import InimPrimeConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +42,7 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
             self,
             hass: HomeAssistant,
             update_interval: timedelta,
-            entry: ConfigEntry,
+            entry: InimPrimeConfigEntry,
             gateway: InimPrimeGateway,
     ):
         super().__init__(

@@ -1,12 +1,8 @@
-from .const import DOMAIN, PANEL_LOG_EVENTS_COORDINATOR
-from .coordinators import InimPrimePanelLogEventsCoordinator
 from .entities.panel import PanelLogEventsEvent
+from .custom_types import InimPrimeConfigEntry
 
-
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
-    coordinators = hass.data[DOMAIN][entry.entry_id]["coordinators"]
-
-    panel_log_events_coordinator: InimPrimePanelLogEventsCoordinator | None = coordinators.get(PANEL_LOG_EVENTS_COORDINATOR)
+async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities) -> None:
+    panel_log_events_coordinator = entry.runtime_data.coordinators.panel_log_events
 
     entities = []
 

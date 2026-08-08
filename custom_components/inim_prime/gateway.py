@@ -47,6 +47,14 @@ class InimPrimeGateway:
     # coordinators & entities to set up at all.
     # ------------------------------------------------------------------
     @property
+    def supports_zones(self) -> bool:
+        return self._native is not None or self._primelan is not None
+
+    @property
+    def supports_partitions(self) -> bool:
+        return self._native is not None or self._primelan is not None
+
+    @property
     def supports_gsm(self) -> bool:
         return self._primelan is not None
 
