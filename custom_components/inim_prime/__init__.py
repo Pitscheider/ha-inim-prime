@@ -4,7 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from custom_types import get_entry_data, InimPrimeConfigData, PrimelanConfigData, get_entry_options
+from .custom_types import get_entry_data, InimPrimeConfigData, PrimelanConfigData, get_entry_options
 from inim.prime.native.client import Client as NativeClient
 from inim.prime.primelan.client import InimPrimeClient as PrimelanClient
 from .adapters.native_adapter import NativeAdapter
