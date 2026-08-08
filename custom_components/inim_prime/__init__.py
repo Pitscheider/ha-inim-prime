@@ -47,8 +47,8 @@ def _build_gateway(data: InimPrimeConfigData) -> InimPrimeGateway:
     primelan_adapter = None
 
     host = data["host"]
-    native_conf = data["native"]
-    primelan_conf = data["primelan"]
+    native_conf = data.get("native")
+    primelan_conf = data.get("primelan")
 
     if native_conf:
         native_client = NativeClient(
