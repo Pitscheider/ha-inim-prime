@@ -342,12 +342,14 @@ async def test_native_connection_and_get_serial(conf: dict) -> str:
     return serial_number
 
 
-async def test_primelan_connection(conf: dict) -> None:
-    """Test a PrimeLAN connection without keeping it open."""
-    client = InimPrimeClient(
-        host = conf[CONF_HOST].strip(),
-        api_key = conf[CONF_PRIMELAN_API_KEY].strip(),
-        use_https = conf[CONF_PRIMELAN_USE_HTTPS],
-    )
-    await client.connect()
-    await client.close()
+def apply_native_pin_toggle(native_conf: dict) -> dict:
+    """Drop the PIN from a submitted native conf when use_custom_pin is unchecked.
+
+    Call this on every user_input dict for the native section before
+    storing or testing it -- the checkbox is the source of truth, not
+    whether the text field happens to be non-empty.
+    """
+    result = dict(native_conf)
+    if result.get(CONF_NATIVE_USE_CUSTOM_PIN) == False:
+        result[CONF_NATIVE_PIN] = None
+    return result

@@ -73,7 +73,7 @@ def _build_gateway(entry: ConfigEntry) -> InimPrimeGateway:
             password = native_conf[CONF_NATIVE_PASSWORD],
             use_outer_frame = native_conf[CONF_NATIVE_USE_OUTER_FRAME],
             port = native_conf[CONF_NATIVE_PORT],
-            pin = native_conf.get(CONF_NATIVE_PIN) or None,
+            pin = native_conf[CONF_NATIVE_PIN],
         )
         native_adapter = NativeAdapter(native_client)
 

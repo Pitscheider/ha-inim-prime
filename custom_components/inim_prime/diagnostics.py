@@ -35,11 +35,9 @@ async def async_get_config_entry_diagnostics(
     coordinators = entry_data["coordinators"]
     gateway: InimPrimeGateway = entry_data["gateway"]
 
-    zones_coordinator: InimPrimeZonesUpdateCoordinator = coordinators[ZONES_COORDINATOR]
-    partitions_coordinator: InimPrimePartitionsUpdateCoordinator = coordinators[PARTITIONS_COORDINATOR]
-    system_faults_coordinator: InimPrimeSystemFaultsUpdateCoordinator | None = coordinators.get(
-        SYSTEM_FAULTS_COORDINATOR
-    )
+    zones_coordinator: InimPrimeZonesUpdateCoordinator | None = coordinators.get(ZONES_COORDINATOR)
+    partitions_coordinator: InimPrimePartitionsUpdateCoordinator | None = coordinators.get(PARTITIONS_COORDINATOR)
+    system_faults_coordinator: InimPrimeSystemFaultsUpdateCoordinator | None = coordinators.get(SYSTEM_FAULTS_COORDINATOR)
     gsm_coordinator: InimPrimeGSMUpdateCoordinator | None = coordinators.get(GSM_COORDINATOR)
 
     diagnostics: dict[str, Any] = {
@@ -47,7 +45,9 @@ async def async_get_config_entry_diagnostics(
             "serial_number": config_entry.data[CONF_SERIAL_NUMBER],
             "backends_active": gateway.backends_active,
         },
-        "zones": {
+    }
+    if zones_coordinator is not None:
+        diagnostics["zones"] = {
             zone_id: {
                 "zone_id": zone.zone_id,
                 "terminal": zone.terminal_id,
@@ -59,8 +59,9 @@ async def async_get_config_entry_diagnostics(
                 "native_state_str": zone.native_state_str,
             }
             for zone_id, zone in zones_coordinator.data.items()
-        },
-        "partitions": {
+        }
+    if partitions_coordinator is not None:
+        diagnostics["partitions"] = {
             partition_id: {
                 "id": partition.partition_id,
                 "label": partition.label,
@@ -69,9 +70,7 @@ async def async_get_config_entry_diagnostics(
                 "alarm_memory": partition.alarm_memory,
             }
             for partition_id, partition in partitions_coordinator.data.items()
-        },
-    }
-
+        }
     if system_faults_coordinator is not None:
         diagnostics["system_faults"] = {
             "supply_voltage": system_faults_coordinator.data.supply_voltage,
@@ -101,47 +100,45 @@ async def async_get_device_diagnostics(
     coordinators = entry_data["coordinators"]
     gateway: InimPrimeGateway = entry_data["gateway"]
 
-    zones_coordinator: InimPrimeZonesUpdateCoordinator = coordinators[ZONES_COORDINATOR]
-    partitions_coordinator: InimPrimePartitionsUpdateCoordinator = coordinators[PARTITIONS_COORDINATOR]
-    system_faults_coordinator: InimPrimeSystemFaultsUpdateCoordinator | None = coordinators.get(
-        SYSTEM_FAULTS_COORDINATOR
-    )
+    zones_coordinator: InimPrimeZonesUpdateCoordinator | None = coordinators.get(ZONES_COORDINATOR)
+    partitions_coordinator: InimPrimePartitionsUpdateCoordinator | None = coordinators.get(PARTITIONS_COORDINATOR)
+    system_faults_coordinator: InimPrimeSystemFaultsUpdateCoordinator | None = coordinators.get(SYSTEM_FAULTS_COORDINATOR)
     gsm_coordinator: InimPrimeGSMUpdateCoordinator | None = coordinators.get(GSM_COORDINATOR)
-    panel_log_events_coordinator: InimPrimePanelLogEventsCoordinator | None = coordinators.get(
-        PANEL_LOG_EVENTS_COORDINATOR
-    )
+    panel_log_events_coordinator: InimPrimePanelLogEventsCoordinator | None = coordinators.get(PANEL_LOG_EVENTS_COORDINATOR)
 
     device_info: dict[str, Any] = {}
     for domain, dev_id in device.identifiers:
         if domain == DOMAIN:
             if "_zone_" in dev_id:
-                zone_id = int(dev_id.split("_zone_")[1])
-                zone = zones_coordinator.data.get(zone_id)
-                if zone:
-                    device_info = {
-                        "device_type": "zone",
-                        "zone_id": zone.zone_id,
-                        "terminal": zone.terminal_id,
-                        "zone_name": zone.label,
-                        "state": zone.state.name if zone.state is not None else None,
-                        "bypass": zone.bypass,
-                        "alarm_memory": zone.alarm_memory,
-                        "native_status_bytes": zone.native_status_bytes,
-                        "native_state_str": zone.native_state_str,
-                    }
+                if zones_coordinator is not None:
+                    zone_id = int(dev_id.split("_zone_")[1])
+                    zone = zones_coordinator.data.get(zone_id)
+                    if zone:
+                        device_info = {
+                            "device_type": "zone",
+                            "zone_id": zone.zone_id,
+                            "terminal": zone.terminal_id,
+                            "zone_name": zone.label,
+                            "state": zone.state.name if zone.state is not None else None,
+                            "bypass": zone.bypass,
+                            "alarm_memory": zone.alarm_memory,
+                            "native_status_bytes": zone.native_status_bytes,
+                            "native_state_str": zone.native_state_str,
+                        }
 
             elif "_partition_" in dev_id:
-                partition_id = int(dev_id.split("_partition_")[1])
-                partition = partitions_coordinator.data.get(partition_id)
-                if partition:
-                    device_info = {
-                        "device_type": "partition",
-                        "partition_id": partition.partition_id,
-                        "partition_name": partition.label,
-                        "partition_state": partition.partition_state.name if partition.partition_state is not None else None,
-                        "arming_status": partition.arming_status.name if partition.arming_status is not None else None,
-                        "alarm_memory": partition.alarm_memory,
-                    }
+                if partitions_coordinator is not None:
+                    partition_id = int(dev_id.split("_partition_")[1])
+                    partition = partitions_coordinator.data.get(partition_id)
+                    if partition:
+                        device_info = {
+                            "device_type": "partition",
+                            "partition_id": partition.partition_id,
+                            "partition_name": partition.label,
+                            "partition_state": partition.partition_state.name if partition.partition_state is not None else None,
+                            "arming_status": partition.arming_status.name if partition.arming_status is not None else None,
+                            "alarm_memory": partition.alarm_memory,
+                        }
 
             elif "_gsm" in dev_id:
                 if gsm_coordinator is not None:

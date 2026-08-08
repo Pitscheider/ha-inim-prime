@@ -12,7 +12,7 @@ from .config_flow_helpers import (
     build_options_schema,
     test_native_connection,
     test_native_connection_and_get_serial,
-    test_primelan_connection,
+    test_primelan_connection, apply_native_pin_toggle,
 )
 from .const import (
     CONF_HOST,
@@ -135,7 +135,7 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
             primelan_conf = None
 
             if CONF_NATIVE in self._backends:
-                native_conf = {**user_input[CONF_NATIVE], CONF_HOST: host}
+                native_conf = apply_native_pin_toggle({**user_input[CONF_NATIVE], CONF_HOST: host})
                 self._data[CONF_NATIVE] = native_conf
 
             if CONF_PRIMELAN in self._backends:
