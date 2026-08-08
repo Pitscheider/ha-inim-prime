@@ -203,7 +203,7 @@ class DisableAllZoneBypassesButton(
         )
 
     async def async_press(self) -> None:
-        await self.coordinator.gateway.set_all_zone_bypasses(True)
+        await self.coordinator.gateway.set_all_zone_bypasses(False)
         await self.coordinator.async_request_refresh()
 
 
