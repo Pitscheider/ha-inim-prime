@@ -341,6 +341,15 @@ async def test_native_connection_and_get_serial(conf: dict) -> str:
 
     return serial_number
 
+async def test_primelan_connection(conf: dict) -> None:
+    """Test a PrimeLAN connection without keeping it open."""
+    client = InimPrimeClient(
+        host = conf[CONF_HOST].strip(),
+        api_key = conf[CONF_PRIMELAN_API_KEY].strip(),
+        use_https = conf.get(CONF_PRIMELAN_USE_HTTPS, True),
+    )
+    await client.connect()
+    await client.close()
 
 def apply_native_pin_toggle(native_conf: dict) -> dict:
     """Drop the PIN from a submitted native conf when use_custom_pin is unchecked.
