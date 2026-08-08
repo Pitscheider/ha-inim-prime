@@ -15,6 +15,7 @@ from homeassistant.data_entry_flow import section
 from homeassistant.helpers.selector import TextSelector, TextSelectorType, TextSelectorConfig, NumberSelector, \
     NumberSelectorConfig, NumberSelectorMode
 
+from config_flow import NativeConfig, PrimelanConfig, FlowData
 from inim.prime.native.client import Client as NativeClient
 from inim.prime.primelan.client import InimPrimeClient
 
@@ -133,10 +134,7 @@ def build_primelan_schema(
 
 def build_connection_schema(
         *,
-        backends: set[str],
-        default_host: str | None = None,
-        native_defaults: dict | None = None,
-        primelan_defaults: dict | None = None,
+        flow_data: FlowData,
 ) -> dict:
     """Build the combined connection-step schema for the chosen backend(s).
 
@@ -146,11 +144,11 @@ def build_connection_schema(
     """
 
     schema: dict = {
-        vol.Required(CONF_HOST, default = default_host): str,
+        vol.Required(CONF_HOST, default = flow_data.host): str,
     }
 
-    if CONF_NATIVE in backends:
-        if native_defaults is None:
+    if flow_data.use_native:
+        if flow_data.native is None:
             schema[vol.Required(CONF_NATIVE)] = section(
                 vol.Schema(
                     build_native_schema(
@@ -163,17 +161,17 @@ def build_connection_schema(
             schema[vol.Required(CONF_NATIVE)] = section(
                 vol.Schema(
                     build_native_schema(
-                        current_port = native_defaults.get(CONF_NATIVE_PORT),
-                        current_use_outer_frame = native_defaults.get(CONF_NATIVE_USE_OUTER_FRAME),
-                        current_use_custom_pin = native_defaults.get(CONF_NATIVE_USE_CUSTOM_PIN),
+                        current_port = flow_data.native.port,
+                        current_use_outer_frame = flow_data.native.use_outer_frame,
+                        current_use_custom_pin = flow_data.native.pin is not None,
                         require_password = False,
                         include_host = False,
                     )
                 )
             )
 
-    if CONF_PRIMELAN in backends:
-        if primelan_defaults is None:
+    if flow_data.use_primelan:
+        if flow_data.primelan is None:
             schema[vol.Required(CONF_PRIMELAN)] = section(
                 vol.Schema(
                     build_primelan_schema(
@@ -186,7 +184,7 @@ def build_connection_schema(
             schema[vol.Required(CONF_PRIMELAN)] = section(
                 vol.Schema(
                     build_primelan_schema(
-                        current_use_https = primelan_defaults.get(CONF_PRIMELAN_USE_HTTPS, True),
+                        current_use_https = flow_data.primelan.use_https,
                         require_api_key = False,
                         include_host = False,
                     )
@@ -300,21 +298,21 @@ def build_options_schema(
 # Connection testing
 # ----------------------------------------------------------------------
 
-async def test_native_connection(conf: dict) -> None:
+async def test_native_connection(native_conf: NativeConfig, host: str) -> None:
     """Test a native connection without keeping it open (used by reconfigure)."""
     client = NativeClient(
-        host = conf[CONF_HOST].strip(),
-        password = conf[CONF_NATIVE_PASSWORD].strip(),
-        use_outer_frame = conf[CONF_NATIVE_USE_OUTER_FRAME],
-        port = conf[CONF_NATIVE_PORT],
-        pin = conf[CONF_NATIVE_PIN].strip() if conf[CONF_NATIVE_USE_CUSTOM_PIN] else None,
+        host = host,
+        password = native_conf.password,
+        use_outer_frame = native_conf.use_outer_frame,
+        port = native_conf.port,
+        pin = native_conf.pin,
     )
     await client.connect()
     await client.initialize()
     client.disconnect()
 
 
-async def test_native_connection_and_get_serial(conf: dict) -> str:
+async def test_native_connection_and_get_serial(native_conf: NativeConfig, host: str) -> str:
     """Test a native connection and return the panel serial number.
 
     Used during initial setup when Native is active: the serial number
@@ -322,11 +320,11 @@ async def test_native_connection_and_get_serial(conf: dict) -> str:
     of being asked to the user.
     """
     client = NativeClient(
-        host = conf[CONF_HOST].strip(),
-        password = conf[CONF_NATIVE_PASSWORD].strip(),
-        use_outer_frame = conf[CONF_NATIVE_USE_OUTER_FRAME],
-        port = conf[CONF_NATIVE_PORT],
-        pin = conf[CONF_NATIVE_PIN].strip() if conf[CONF_NATIVE_USE_CUSTOM_PIN] else None,
+        host = host,
+        password = native_conf.password,
+        use_outer_frame = native_conf.use_outer_frame,
+        port = native_conf.port,
+        pin = native_conf.pin,
     )
     await client.connect()
     await client.initialize()
@@ -341,24 +339,13 @@ async def test_native_connection_and_get_serial(conf: dict) -> str:
 
     return serial_number
 
-async def test_primelan_connection(conf: dict) -> None:
+async def test_primelan_connection(primelan_conf: PrimelanConfig, host: str) -> None:
     """Test a PrimeLAN connection without keeping it open."""
     client = InimPrimeClient(
-        host = conf[CONF_HOST].strip(),
-        api_key = conf[CONF_PRIMELAN_API_KEY].strip(),
-        use_https = conf.get(CONF_PRIMELAN_USE_HTTPS, True),
+        host = host,
+        api_key = primelan_conf.api_key,
+        use_https = primelan_conf.use_https,
     )
     await client.connect()
     await client.close()
 
-def apply_native_pin_toggle(native_conf: dict) -> dict:
-    """Drop the PIN from a submitted native conf when use_custom_pin is unchecked.
-
-    Call this on every user_input dict for the native section before
-    storing or testing it -- the checkbox is the source of truth, not
-    whether the text field happens to be non-empty.
-    """
-    result = dict(native_conf)
-    if result.get(CONF_NATIVE_USE_CUSTOM_PIN) == False:
-        result[CONF_NATIVE_PIN] = None
-    return result

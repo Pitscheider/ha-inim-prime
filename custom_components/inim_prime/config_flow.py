@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any
 
 import voluptuous as vol
@@ -5,6 +6,9 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, OptionsFlow
 from homeassistant.core import callback
 
+from const import CONF_NATIVE_USE_CUSTOM_PIN
+from custom_components.inim_prime import CONF_NATIVE_PASSWORD, CONF_PRIMELAN_API_KEY, CONF_PRIMELAN_USE_HTTPS, \
+    PrimelanAdapter
 from .config_flow_helpers import (
     build_native_schema,
     build_primelan_schema,
@@ -12,7 +16,7 @@ from .config_flow_helpers import (
     build_options_schema,
     test_native_connection,
     test_native_connection_and_get_serial,
-    test_primelan_connection, apply_native_pin_toggle,
+    test_primelan_connection,
 )
 from .const import (
     CONF_HOST,
@@ -26,8 +30,39 @@ from .const import (
     CONF_PANEL_LOG_EVENTS_FETCH_LIMIT,
     CONF_NATIVE_USE_OUTER_FRAME_DEFAULT,
     CONF_NATIVE,
-    CONF_PRIMELAN,
+    CONF_PRIMELAN, CONF_NATIVE_PORT, CONF_NATIVE_USE_OUTER_FRAME, CONF_NATIVE_PIN,
 )
+
+@dataclass
+class NativeConfig:
+    port: int
+    password: str
+    use_outer_frame: bool
+    pin: str | None
+
+
+@dataclass
+class PrimelanConfig:
+    api_key: str
+    use_https: bool
+
+@dataclass
+class OptionsData:
+    zones_scan_interval: int | None = None
+    partitions_scan_interval: int | None = None
+    gsm_scan_interval: int | None = None
+    system_faults_scan_interval: int | None = None
+    panel_log_events_scan_interval: int | None = None
+    panel_log_events_fetch_limit: int | None = None
+
+@dataclass
+class FlowData:
+    serial_number: str | None = None
+    host: str | None = None
+    use_native: bool = False
+    use_primelan: bool = False
+    native: NativeConfig | None = None
+    primelan: PrimelanConfig | None = None
 
 
 class InimPrimeOptionsFlowHandler(OptionsFlow):
@@ -82,8 +117,8 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
     MINOR_VERSION = 0
 
     def __init__(self):
-        self._data: dict[str, Any] = {}
-        self._backends: set[str] = set()
+        self._options: OptionsData = OptionsData()
+        self._data: FlowData = FlowData()
 
     # ------------------------------------------------------------------
     # Step 1: backend choice
@@ -95,15 +130,16 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
         )
 
     async def async_step_native_only(self, user_input: dict[str, Any] | None = None):
-        self._backends = {CONF_NATIVE}
+        self._data.use_native = True
         return await self.async_step_connection()
 
     async def async_step_primelan_only(self, user_input: dict[str, Any] | None = None):
-        self._backends = {CONF_PRIMELAN}
+        self._data.use_primelan = True
         return await self.async_step_serial_number()
 
     async def async_step_both(self, user_input: dict[str, Any] | None = None):
-        self._backends = {CONF_NATIVE, CONF_PRIMELAN}
+        self._data.use_native = True
+        self._data.use_primelan = True
         return await self.async_step_connection()
 
     # ------------------------------------------------------------------
@@ -111,7 +147,7 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
     # ------------------------------------------------------------------
     async def async_step_serial_number(self, user_input: dict[str, Any] | None = None):
         if user_input is not None:
-            self._data[CONF_SERIAL_NUMBER] = user_input[CONF_SERIAL_NUMBER].strip()
+            self._data.serial_number = user_input[CONF_SERIAL_NUMBER].strip()
             return await self.async_step_connection()
 
         schema = vol.Schema(
@@ -128,40 +164,44 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            host = user_input[CONF_HOST].strip()
-            self._data[CONF_HOST] = host
+            self._data.host = user_input[CONF_HOST].strip()
 
             native_conf = None
             primelan_conf = None
 
-            if CONF_NATIVE in self._backends:
-                native_conf = apply_native_pin_toggle({**user_input[CONF_NATIVE], CONF_HOST: host})
-                self._data[CONF_NATIVE] = native_conf
+            if self._data.use_native:
+                native_conf = user_input[CONF_NATIVE]
+                self._data.native = NativeConfig(
+                    port = native_conf[CONF_NATIVE_PORT],
+                    password = native_conf[CONF_NATIVE_PASSWORD],
+                    use_outer_frame = native_conf[CONF_NATIVE_USE_OUTER_FRAME],
+                    pin = native_conf[CONF_NATIVE_PIN] if native_conf[CONF_NATIVE_USE_CUSTOM_PIN] else None,
+                )
 
-            if CONF_PRIMELAN in self._backends:
-                primelan_conf = {**user_input[CONF_PRIMELAN], CONF_HOST: host}
-                self._data[CONF_PRIMELAN] = primelan_conf
+            if self._data.use_primelan:
+                primelan_conf = user_input[CONF_PRIMELAN]
+                self._data.primelan = PrimelanConfig(
+                    api_key = primelan_conf[CONF_PRIMELAN_API_KEY],
+                    use_https = primelan_conf[CONF_PRIMELAN_USE_HTTPS],
+                )
 
             try:
-                if native_conf:
+                if self._data.use_native:
                     # Native present -> serial number is retrieved here,
                     # never asked to the user.
-                    self._data[CONF_SERIAL_NUMBER] = await test_native_connection_and_get_serial(native_conf)
+                    self._data.serial_number = await test_native_connection_and_get_serial(self._data.native, self._data.host)
                 if primelan_conf:
-                    await test_primelan_connection(primelan_conf)
+                    await test_primelan_connection(self._data.primelan, self._data.host)
             except Exception:
                 errors["base"] = "cannot_connect"
             else:
-                await self.async_set_unique_id(self._data[CONF_SERIAL_NUMBER])
+                await self.async_set_unique_id(self._data.serial_number)
                 self._abort_if_unique_id_configured()
                 return await self.async_step_options()
 
         schema = vol.Schema(
             build_connection_schema(
-                backends = self._backends,
-                default_host = self._data.get(CONF_HOST),
-                native_defaults = self._data.get(CONF_NATIVE),
-                primelan_defaults = self._data.get(CONF_PRIMELAN),
+                flow_data = self._data,
             )
         )
 
@@ -175,39 +215,29 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
     # Step 4: integration options (scan intervals)
     # ------------------------------------------------------------------
     async def async_step_options(self, user_input: dict[str, Any] | None = None):
-        has_native = CONF_NATIVE in self._backends
-        has_primelan = CONF_PRIMELAN in self._backends
 
         if user_input is not None:
             scan_intervals = user_input["scan_intervals"]
 
-            options: dict[str, Any] = {
-                CONF_ZONES_SCAN_INTERVAL: scan_intervals[CONF_ZONES_SCAN_INTERVAL],
-                CONF_PARTITIONS_SCAN_INTERVAL: scan_intervals[CONF_PARTITIONS_SCAN_INTERVAL],
-            }
+            self._options.zones_scan_interval = scan_intervals[CONF_ZONES_SCAN_INTERVAL]
+            self._options.partitions_scan_interval = scan_intervals[CONF_PARTITIONS_SCAN_INTERVAL]
 
-            if has_primelan:
-                options[CONF_GSM_SCAN_INTERVAL] = scan_intervals[CONF_GSM_SCAN_INTERVAL]
-                options[CONF_SYSTEM_FAULTS_SCAN_INTERVAL] = scan_intervals[CONF_SYSTEM_FAULTS_SCAN_INTERVAL]
-                options[CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL] = scan_intervals[CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL]
-                options[CONF_PANEL_LOG_EVENTS_FETCH_LIMIT] = user_input[CONF_PANEL_LOG_EVENTS_FETCH_LIMIT]
-
-            entry_data: dict[str, Any] = {CONF_SERIAL_NUMBER: self._data[CONF_SERIAL_NUMBER]}
-            if has_native:
-                entry_data[CONF_NATIVE] = self._data[CONF_NATIVE]
-            if has_primelan:
-                entry_data[CONF_PRIMELAN] = self._data[CONF_PRIMELAN]
+            if self._data.use_primelan:
+                self._options.gsm_scan_interval = scan_intervals[CONF_GSM_SCAN_INTERVAL]
+                self._options.system_faults_scan_interval = scan_intervals[CONF_SYSTEM_FAULTS_SCAN_INTERVAL]
+                self._options.panel_log_events_scan_interval = scan_intervals[CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL]
+                self._options.panel_log_events_fetch_limit = user_input[CONF_PANEL_LOG_EVENTS_FETCH_LIMIT]
 
             return self.async_create_entry(
                 title = f"INIM Prime ({self._data[CONF_SERIAL_NUMBER]})",
-                data = entry_data,
-                options = options,
+                data = self._data,
+                options = self._options,
             )
 
         schema = vol.Schema(
             build_options_schema(
-                has_native = has_native,
-                has_primelan = has_primelan,
+                has_native = self._data.use_native,
+                has_primelan = self._data.use_primelan,
             )
         )
 

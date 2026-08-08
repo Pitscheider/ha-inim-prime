@@ -66,10 +66,13 @@ def _build_gateway(entry: ConfigEntry) -> InimPrimeGateway:
     native_adapter = None
     primelan_adapter = None
 
+    host: str = entry.data[CONF_HOST]
     native_conf = entry.data.get(CONF_NATIVE)
+    primelan_conf = entry.data.get(CONF_PRIMELAN)
+
     if native_conf:
         native_client = NativeClient(
-            host = native_conf[CONF_HOST],
+            host = host,
             password = native_conf[CONF_NATIVE_PASSWORD],
             use_outer_frame = native_conf[CONF_NATIVE_USE_OUTER_FRAME],
             port = native_conf[CONF_NATIVE_PORT],
@@ -77,10 +80,10 @@ def _build_gateway(entry: ConfigEntry) -> InimPrimeGateway:
         )
         native_adapter = NativeAdapter(native_client)
 
-    primelan_conf = entry.data.get(CONF_PRIMELAN)
+
     if primelan_conf:
         primelan_client = PrimelanClient(
-            host = primelan_conf[CONF_HOST],
+            host = host,
             api_key = primelan_conf[CONF_PRIMELAN_API_KEY],
             use_https = primelan_conf.get(CONF_PRIMELAN_USE_HTTPS, True),
         )
