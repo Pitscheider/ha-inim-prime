@@ -33,11 +33,11 @@ from .const import (
     CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL,
 
     # --- Defaults (custom per coordinator) ---
-    CONF_ZONES_SCAN_INTERVAL_DEFAULT,
-    CONF_PARTITIONS_SCAN_INTERVAL_DEFAULT,
-    CONF_GSM_SCAN_INTERVAL_DEFAULT,
-    CONF_SYSTEM_FAULTS_SCAN_INTERVAL_DEFAULT,
-    CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_DEFAULT, CONF_HOST, CONF_PRIMELAN_API_KEY, CONF_PRIMELAN_USE_HTTPS, CONF_NATIVE,
+    CONF_ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    CONF_PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    CONF_GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    CONF_SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT, CONF_HOST, CONF_PRIMELAN_API_KEY, CONF_PRIMELAN_USE_HTTPS, CONF_NATIVE,
     CONF_PRIMELAN, CONF_NATIVE_PASSWORD, CONF_NATIVE_USE_OUTER_FRAME, CONF_NATIVE_PORT, CONF_NATIVE_PIN,
 )
 from .coordinators import (
@@ -118,23 +118,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     zones_scan_interval = scan_intervals.get(
         CONF_ZONES_SCAN_INTERVAL,
-        CONF_ZONES_SCAN_INTERVAL_DEFAULT,
+        CONF_ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT,
     )
     partitions_scan_interval = scan_intervals.get(
         CONF_PARTITIONS_SCAN_INTERVAL,
-        CONF_PARTITIONS_SCAN_INTERVAL_DEFAULT,
+        CONF_PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
     )
     gsm_scan_interval = scan_intervals.get(
         CONF_GSM_SCAN_INTERVAL,
-        CONF_GSM_SCAN_INTERVAL_DEFAULT,
+        CONF_GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT,
     )
     system_faults_scan_interval = scan_intervals.get(
         CONF_SYSTEM_FAULTS_SCAN_INTERVAL,
-        CONF_SYSTEM_FAULTS_SCAN_INTERVAL_DEFAULT,
+        CONF_SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
     )
     panel_log_events_scan_interval = scan_intervals.get(
         CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL,
-        CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_DEFAULT,
+        CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
     )
 
     inim_prime_coordinators: dict[str, DataUpdateCoordinator]
@@ -143,14 +143,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     inim_prime_coordinators = {
         ZONES_COORDINATOR: InimPrimeZonesUpdateCoordinator(
             hass = hass,
-            update_interval = timedelta(milliseconds = 300),
-            # update_interval = timedelta(seconds = zones_scan_interval),
+            update_interval = timedelta(milliseconds = zones_scan_interval),
             entry = entry,
             gateway = gateway,
         ),
         PARTITIONS_COORDINATOR: InimPrimePartitionsUpdateCoordinator(
             hass = hass,
-            update_interval = timedelta(seconds = partitions_scan_interval),
+            update_interval = timedelta(milliseconds = partitions_scan_interval),
             entry = entry,
             gateway = gateway,
         ),
@@ -164,7 +163,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if gateway.supports_system_faults:
         inim_prime_coordinators[SYSTEM_FAULTS_COORDINATOR] = InimPrimeSystemFaultsUpdateCoordinator(
             hass = hass,
-            update_interval = timedelta(seconds = system_faults_scan_interval),
+            update_interval = timedelta(milliseconds = system_faults_scan_interval),
             entry = entry,
             gateway = gateway,
         )
@@ -172,7 +171,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if gateway.supports_gsm:
         inim_prime_coordinators[GSM_COORDINATOR] = InimPrimeGSMUpdateCoordinator(
             hass = hass,
-            update_interval = timedelta(seconds = gsm_scan_interval),
+            update_interval = timedelta(milliseconds = gsm_scan_interval),
             entry = entry,
             gateway = gateway,
         )
@@ -180,7 +179,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if gateway.supports_log_events:
         inim_prime_coordinators[PANEL_LOG_EVENTS_COORDINATOR] = InimPrimePanelLogEventsCoordinator(
             hass = hass,
-            update_interval = timedelta(seconds = panel_log_events_scan_interval),
+            update_interval = timedelta(milliseconds = panel_log_events_scan_interval),
             entry = entry,
             gateway = gateway,
         )
