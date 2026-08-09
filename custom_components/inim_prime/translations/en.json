@@ -5,12 +5,57 @@
     "step": {
       "user": {
         "title": "Configure INIM Prime",
+        "description": "Choose which backend(s) to use for this panel.",
+        "menu_options": {
+          "native_only": "Native only",
+          "primelan_only": "PrimeLAN only",
+          "both": "Native + PrimeLAN"
+        }
+      },
+      "serial_number": {
+        "title": "Panel Serial Number",
+        "description": "PrimeLAN cannot retrieve the panel's serial number automatically. Enter it manually.",
+        "data": {
+          "serial_number": "Panel Serial Number"
+        }
+      },
+      "connection": {
+        "title": "Connect to your panel",
         "description": "Enter connection details for your INIM Prime alarm panel.",
         "data": {
-          "serial_number": "Panel Serial Number",
-          "host": "Host / IP Address",
-          "use_https": "Use HTTPS",
-          "api_key": "API Key"
+          "host": "Host / IP Address"
+        },
+        "sections": {
+          "native": {
+            "name": "Native",
+            "description": "Settings for the Native protocol connection.",
+            "data": {
+              "port": "Port",
+              "use_outer_frame": "Use Outer Frame",
+              "password": "Password",
+              "use_custom_pin": "Use Custom PIN",
+              "pin": "PIN"
+            },
+            "data_description": {
+              "port": "TCP port the panel's Native protocol listens on.",
+              "use_outer_frame": "Enable only if your panel requires the outer communication frame.",
+              "password": "Native protocol password. Leave at the default unless you've changed it on the panel.",
+              "use_custom_pin": "Enable to authenticate with a specific installer/user PIN instead of the default.",
+              "pin": "PIN code used to authenticate with the panel."
+            }
+          },
+          "primelan": {
+            "name": "PrimeLAN",
+            "description": "Settings for the PrimeLAN API connection.",
+            "data": {
+              "use_https": "Use HTTPS",
+              "api_key": "API Key"
+            },
+            "data_description": {
+              "use_https": "Use HTTPS instead of HTTP to reach the PrimeLAN gateway.",
+              "api_key": "API key used to authenticate with the PrimeLAN gateway."
+            }
+          }
         }
       },
       "options": {
@@ -26,29 +71,97 @@
             "name": "Scan intervals",
             "description": "Controls how often Home Assistant sends API requests to the panel (lower values increase traffic). For details on which entities each interval affects, see the integration README.",
             "data": {
-              "zones_scan_interval": "Zones Scan Interval (seconds)",
-              "partitions_scan_interval": "Partitions Scan Interval (seconds)",
-              "gsm_scan_interval": "GSM Scan Interval (seconds)",
-              "system_faults_scan_interval": "System Faults Scan Interval (seconds)",
-              "panel_log_events_scan_interval": "Panel Log Events Scan Interval (seconds)"
+              "zones": "Zones Scan Interval (milliseconds)",
+              "partitions": "Partitions Scan Interval (milliseconds)",
+              "gsm": "GSM Scan Interval (milliseconds)",
+              "system_faults": "System Faults Scan Interval (milliseconds)",
+              "panel_log_events": "Panel Log Events Scan Interval (milliseconds)"
             },
             "data_description": {
-              "zones_scan_interval": "How often Home Assistant sends API requests to fetch zone status.",
-              "partitions_scan_interval": "How often Home Assistant sends API requests to fetch partition status.",
-              "gsm_scan_interval": "How often Home Assistant sends API requests to fetch GSM status.",
-              "system_faults_scan_interval": "How often Home Assistant sends API requests to fetch system faults.",
-              "panel_log_events_scan_interval": "How often Home Assistant sends API requests to fetch new panel log events."
+              "zones": "How often Home Assistant sends API requests to fetch zone status.",
+              "partitions": "How often Home Assistant sends API requests to fetch partition status.",
+              "gsm": "How often Home Assistant sends API requests to fetch GSM status.",
+              "system_faults": "How often Home Assistant sends API requests to fetch system faults.",
+              "panel_log_events": "How often Home Assistant sends API requests to fetch new panel log events."
             }
           }
         }
       },
       "reconfigure": {
         "title": "Reconfigure INIM Prime",
-        "description": "Update your INIM Prime connection settings.",
+        "description": "Choose which backend(s) to use for this panel.",
+        "menu_options": {
+          "reconfigure_native_only": "Native only",
+          "reconfigure_primelan_only": "PrimeLAN only",
+          "reconfigure_both": "Native + PrimeLAN"
+        }
+      },
+      "reconfigure_connection": {
+        "title": "Reconfigure connection",
+        "description": "Update connection details for your INIM Prime alarm panel.",
         "data": {
-          "host": "Host / IP Address",
-          "use_https": "Use HTTPS",
-          "api_key": "API Key (leave blank to keep current)"
+          "host": "Host / IP Address"
+        },
+        "sections": {
+          "native": {
+            "name": "Native",
+            "description": "Settings for the Native protocol connection.",
+            "data": {
+              "port": "Port",
+              "use_outer_frame": "Use Outer Frame",
+              "password": "Password",
+              "use_custom_pin": "Use Custom PIN",
+              "pin": "PIN"
+            },
+            "data_description": {
+              "port": "TCP port the panel's Native protocol listens on.",
+              "use_outer_frame": "Enable only if your panel requires the outer communication frame.",
+              "password": "Leave blank to keep the current password.",
+              "use_custom_pin": "Enable to authenticate with a specific installer/user PIN instead of the default.",
+              "pin": "Leave blank to keep the current PIN."
+            }
+          },
+          "primelan": {
+            "name": "PrimeLAN",
+            "description": "Settings for the PrimeLAN API connection.",
+            "data": {
+              "use_https": "Use HTTPS",
+              "api_key": "API Key"
+            },
+            "data_description": {
+              "use_https": "Use HTTPS instead of HTTP to reach the PrimeLAN gateway.",
+              "api_key": "Leave blank to keep the current API key."
+            }
+          }
+        }
+      },
+      "reconfigure_options": {
+        "title": "INIM Prime Options",
+        "data": {
+          "panel_log_events_fetch_limit": "Panel Log Events Fetch Limit"
+        },
+        "data_description": {
+          "panel_log_events_fetch_limit": "Number of log events fetched per scan when new logs are detected. Default is recommended.\nThe integration will automatically fetch more if needed."
+        },
+        "sections": {
+          "scan_intervals": {
+            "name": "Scan intervals",
+            "description": "Controls how often Home Assistant sends API requests to the panel (lower values increase traffic). For details on which entities each interval affects, see the integration README.\nNote: the Native backend supports much lower intervals than PrimeLAN for Zones and Partitions. If you've just added or removed Native, the defaults below have been adjusted accordingly.",
+            "data": {
+              "zones": "Zones Scan Interval (milliseconds)",
+              "partitions": "Partitions Scan Interval (milliseconds)",
+              "gsm": "GSM Scan Interval (milliseconds)",
+              "system_faults": "System Faults Scan Interval (milliseconds)",
+              "panel_log_events": "Panel Log Events Scan Interval (milliseconds)"
+            },
+            "data_description": {
+              "zones": "How often Home Assistant sends API requests to fetch zone status.",
+              "partitions": "How often Home Assistant sends API requests to fetch partition status.",
+              "gsm": "How often Home Assistant sends API requests to fetch GSM status.",
+              "system_faults": "How often Home Assistant sends API requests to fetch system faults.",
+              "panel_log_events": "How often Home Assistant sends API requests to fetch new panel log events."
+            }
+          }
         }
       }
     },
@@ -56,7 +169,8 @@
       "cannot_connect": "Failed to connect to the INIM Prime panel."
     },
     "abort": {
-      "already_configured": "This INIM Prime panel is already configured."
+      "already_configured": "This INIM Prime panel is already configured.",
+      "reconfigure_successful": "The INIM Prime panel was reconfigured successfully."
     }
   },
 
@@ -75,18 +189,18 @@
             "name": "Scan intervals",
             "description": "Controls how often Home Assistant sends API requests to the panel (lower values increase traffic). For details on which entities each interval affects, see the integration README.",
             "data": {
-              "zones_scan_interval": "Zones Scan Interval (seconds)",
-              "partitions_scan_interval": "Partitions Scan Interval (seconds)",
-              "gsm_scan_interval": "GSM Scan Interval (seconds)",
-              "system_faults_scan_interval": "System Faults Scan Interval (seconds)",
-              "panel_log_events_scan_interval": "Panel Log Events Scan Interval (seconds)"
+              "zones": "Zones Scan Interval (milliseconds)",
+              "partitions": "Partitions Scan Interval (milliseconds)",
+              "gsm": "GSM Scan Interval (milliseconds)",
+              "system_faults": "System Faults Scan Interval (milliseconds)",
+              "panel_log_events": "Panel Log Events Scan Interval (milliseconds)"
             },
             "data_description": {
-              "zones_scan_interval": "How often Home Assistant sends API requests to fetch zone status.",
-              "partitions_scan_interval": "How often Home Assistant sends API requests to fetch partition status.",
-              "gsm_scan_interval": "How often Home Assistant sends API requests to fetch GSM status.",
-              "system_faults_scan_interval": "How often Home Assistant sends API requests to fetch system faults.",
-              "panel_log_events_scan_interval": "How often Home Assistant sends API requests to fetch new panel log events."
+              "zones": "How often Home Assistant sends API requests to fetch zone status.",
+              "partitions": "How often Home Assistant sends API requests to fetch partition status.",
+              "gsm": "How often Home Assistant sends API requests to fetch GSM status.",
+              "system_faults": "How often Home Assistant sends API requests to fetch system faults.",
+              "panel_log_events": "How often Home Assistant sends API requests to fetch new panel log events."
             }
           }
         }
