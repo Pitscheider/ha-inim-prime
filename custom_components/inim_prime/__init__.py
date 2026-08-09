@@ -23,7 +23,7 @@ from .entry_data import (
     get_entry_options,
     get_entry_data,
     InimPrimeConfigData,
-    PrimelanConfigData,
+    PrimelanConfigData, InimPrimeOptionsData, ScanIntervalsData,
 )
 from .gateway import InimPrimeGateway
 from .runtime_data import (
@@ -234,11 +234,25 @@ async def async_migrate_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) 
                 api_key = entry.data["api_key"],
                 use_https = entry.data["use_https"],
             )
+        )
 
+        new_options = InimPrimeOptionsData(
+            scan_intervals = ScanIntervalsData(
+                zones = entry.options["scan_intervals"]["zones_scan_interval"],
+                partitions = entry.options["scan_intervals"]["partitions_scan_interval"],
+                gsm = entry.options["scan_intervals"]["gsm_scan_interval"],
+                system_faults = entry.options["scan_intervals"]["system_faults_scan_interval"],
+                panel_log_events = entry.options["scan_intervals"]["panel_log_events_scan_interval"],
+            ),
+            panel_log_events_fetch_limit = entry.options["panel_log_events_fetch_limit"],
         )
 
         hass.config_entries.async_update_entry(
-            entry, data = new_data, version = 2, minor_version = 0,
+            entry,
+            data = new_data,
+            options = new_options,
+            version = 2,
+            minor_version = 0,
         )
 
     return True
