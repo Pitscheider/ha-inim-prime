@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from inim_prime import get_entry_options
+from ..custom_types import get_entry_options
 from ..const import (
     DOMAIN,
     STORAGE_KEY_LAST_PANEL_EVENT_LOGS,
