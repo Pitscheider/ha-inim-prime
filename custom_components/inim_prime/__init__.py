@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Final
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr

@@ -6,7 +6,6 @@ from homeassistant.helpers.device_registry import DeviceEntry
 
 from .const import (
     DOMAIN,
-    CONF_SERIAL_NUMBER,
 )
 from .custom_types import InimPrimeConfigEntry
 from .gateway import InimPrimeGateway
@@ -21,7 +20,7 @@ async def async_get_config_entry_diagnostics(
     gateway = entry.runtime_data.gateway
 
     diagnostics: dict[str, Any] = {"panel": {
-        "serial_number": entry.data[CONF_SERIAL_NUMBER],
+        "serial_number": entry.runtime_data.serial_number,
         "backends_active": gateway.backends_active,
     }, "zones": {
         zone_id: {
@@ -121,7 +120,7 @@ async def async_get_device_diagnostics(
             else:
                 device_info = {
                     "device_type": "panel",
-                    "serial_number": entry.data[CONF_SERIAL_NUMBER],
+                    "serial_number": entry.runtime_data.serial_number,
                     "backends_active": gateway.backends_active,
                 }
                 system_faults = gateway.system_faults

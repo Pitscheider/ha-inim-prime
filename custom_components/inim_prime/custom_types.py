@@ -79,7 +79,7 @@ class InimPrimeOptionsData(TypedDict):
     panel_log_events_fetch_limit: NotRequired[int]
 
 def get_entry_data(entry: ConfigEntry) -> InimPrimeConfigData:
-    return cast(InimPrimeConfigData, entry.data)
+    return cast(InimPrimeConfigData, cast(object, entry.data))
 
 def get_entry_options(entry: ConfigEntry) -> InimPrimeOptionsData:
-    return cast(InimPrimeOptionsData, entry.options)
+    return cast(InimPrimeOptionsData, cast(object, entry.options))

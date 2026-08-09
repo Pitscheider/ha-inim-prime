@@ -9,25 +9,32 @@ from homeassistant.helpers.selector import (
     NumberSelector, NumberSelectorConfig, NumberSelectorMode,
 )
 
-from .models import FlowData
-from ..const import (
-    CONF_HOST, CONF_NATIVE, CONF_NATIVE_PASSWORD, CONF_NATIVE_PIN,
-    CONF_NATIVE_PORT, CONF_NATIVE_PORT_DEFAULT, CONF_NATIVE_USE_OUTER_FRAME,
-    CONF_NATIVE_USE_OUTER_FRAME_DEFAULT, CONF_PRIMELAN, CONF_PRIMELAN_API_KEY,
-    CONF_PRIMELAN_USE_HTTPS, CONF_PANEL_LOG_EVENTS_FETCH_LIMIT,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT, CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MIN,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX, CONF_SCAN_INTERVAL_MIN, CONF_SCAN_INTERVAL_MAX,
-    CONF_ZONES_SCAN_INTERVAL, CONF_PARTITIONS_SCAN_INTERVAL, CONF_GSM_SCAN_INTERVAL,
-    CONF_SYSTEM_FAULTS_SCAN_INTERVAL, CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL,
-    CONF_ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT, CONF_PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
-    CONF_ZONES_SCAN_INTERVAL_NATIVE_DEFAULT, CONF_PARTITIONS_SCAN_INTERVAL_NATIVE_DEFAULT,
-    CONF_GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT, CONF_SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
-    CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT, CONF_NATIVE_PASSWORD_DEFAULT,
-    CONF_PRIMELAN_USE_HTTPS_DEFAULT, CONF_NATIVE_USE_CUSTOM_PIN, CONF_NATIVE_USE_CUSTOM_PIN_DEFAULT,
+from custom_types import InimPrimeOptionsData
+from .const import (
+    DataKey,
+    OptionsKey,
 )
 
-# ... build_native_schema, build_primelan_schema, build_connection_schema,
-#     default_scan_intervals, build_options_schema — unchanged bodies, moved here
+from .models import FlowData, ScanIntervalsDefault
+from ..const import (
+    ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    ZONES_SCAN_INTERVAL_NATIVE_DEFAULT,
+    PARTITIONS_SCAN_INTERVAL_NATIVE_DEFAULT,
+    GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    NATIVE_PASSWORD_DEFAULT,
+    PRIMELAN_USE_HTTPS_DEFAULT,
+    NATIVE_USE_CUSTOM_PIN_DEFAULT,
+    NATIVE_PORT_DEFAULT,
+    NATIVE_USE_OUTER_FRAME_DEFAULT,
+    SCAN_INTERVAL_MIN,
+    SCAN_INTERVAL_MAX,
+    PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT,
+    PANEL_LOG_EVENTS_FETCH_LIMIT_MIN,
+    PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
+)
 
 # ----------------------------------------------------------------------
 # Per-backend connection schemas
@@ -49,31 +56,43 @@ def build_native_schema(
     """
     schema: dict = {}
 
+    # Host
     if include_host:
-        schema[vol.Required(CONF_HOST, default = current_host)] = str
+        schema[vol.Required(DataKey.HOST, default = current_host)] = str
 
+    # Port
     schema[vol.Required(
-        CONF_NATIVE_PORT,
-        default = current_port if current_port is not None else CONF_NATIVE_PORT_DEFAULT,
+        DataKey.Native.PORT,
+        default = current_port if current_port is not None else NATIVE_PORT_DEFAULT,
     )] = int
+
+    # Use outer frame
     schema[vol.Required(
-        CONF_NATIVE_USE_OUTER_FRAME,
-        default = current_use_outer_frame if current_use_outer_frame is not None else CONF_NATIVE_USE_OUTER_FRAME_DEFAULT,
+        DataKey.Native.USE_OUTER_FRAME,
+        default = current_use_outer_frame if current_use_outer_frame is not None else NATIVE_USE_OUTER_FRAME_DEFAULT,
     )] = bool
 
+    # Password
     if require_password:
         schema[vol.Required(
-            CONF_NATIVE_PASSWORD,
-            default = CONF_NATIVE_PASSWORD_DEFAULT,
+            DataKey.Native.PASSWORD,
+            default = NATIVE_PASSWORD_DEFAULT,
         )] = TextSelector(TextSelectorConfig(type = TextSelectorType.PASSWORD))
     else:
-        schema[vol.Optional(CONF_NATIVE_PASSWORD)] = TextSelector(TextSelectorConfig(type = TextSelectorType.PASSWORD))
+        schema[vol.Optional(
+            DataKey.Native.PASSWORD,
+        )] = TextSelector(TextSelectorConfig(type = TextSelectorType.PASSWORD))
 
+    # Use custom pin
     schema[vol.Required(
-        CONF_NATIVE_USE_CUSTOM_PIN,
-        default = current_use_custom_pin if current_use_custom_pin is not None else CONF_NATIVE_USE_CUSTOM_PIN_DEFAULT,
+        DataKey.Native.USE_CUSTOM_PIN,
+        default = current_use_custom_pin if current_use_custom_pin is not None else NATIVE_USE_CUSTOM_PIN_DEFAULT,
     )] = bool
-    schema[vol.Optional(CONF_NATIVE_PIN)] = TextSelector(TextSelectorConfig(type = TextSelectorType.PASSWORD))
+
+    # Pin
+    schema[vol.Optional(
+        DataKey.Native.PIN,
+    )] = TextSelector(TextSelectorConfig(type = TextSelectorType.PASSWORD))
 
     return schema
 
@@ -88,20 +107,23 @@ def build_primelan_schema(
     """Build the PrimeLAN connection schema."""
     schema: dict = {}
 
+    # Host
     if include_host:
-        schema[vol.Required(CONF_HOST, default = current_host)] = str
+        schema[vol.Required(DataKey.HOST, default = current_host)] = str
 
+    # Use https
     schema[vol.Required(
-        CONF_PRIMELAN_USE_HTTPS,
-        default = current_use_https if current_use_https is not None else CONF_PRIMELAN_USE_HTTPS_DEFAULT,
+        DataKey.Primelan.USE_HTTPS,
+        default = current_use_https if current_use_https is not None else PRIMELAN_USE_HTTPS_DEFAULT,
     )] = bool
 
+    # Api key
     if require_api_key:
-        schema[vol.Required(CONF_PRIMELAN_API_KEY)] = TextSelector(
+        schema[vol.Required(DataKey.Primelan.API_KEY)] = TextSelector(
             TextSelectorConfig(type = TextSelectorType.PASSWORD)
         )
     else:
-        schema[vol.Optional(CONF_PRIMELAN_API_KEY)] = TextSelector(
+        schema[vol.Optional(DataKey.Primelan.API_KEY)] = TextSelector(
             TextSelectorConfig(type = TextSelectorType.PASSWORD)
         )
 
@@ -120,12 +142,12 @@ def build_connection_schema(
     """
 
     schema: dict = {
-        vol.Required(CONF_HOST, default = flow_data.host): str,
+        vol.Required(DataKey.HOST, default = flow_data.host): str,
     }
 
     if flow_data.use_native:
         if flow_data.native is None:
-            schema[vol.Required(CONF_NATIVE)] = section(
+            schema[vol.Required(DataKey.NATIVE)] = section(
                 vol.Schema(
                     build_native_schema(
                         require_password = True,
@@ -134,7 +156,7 @@ def build_connection_schema(
                 )
             )
         else:
-            schema[vol.Required(CONF_NATIVE)] = section(
+            schema[vol.Required(DataKey.NATIVE)] = section(
                 vol.Schema(
                     build_native_schema(
                         current_port = flow_data.native.port,
@@ -148,7 +170,7 @@ def build_connection_schema(
 
     if flow_data.use_primelan:
         if flow_data.primelan is None:
-            schema[vol.Required(CONF_PRIMELAN)] = section(
+            schema[vol.Required(DataKey.PRIMELAN)] = section(
                 vol.Schema(
                     build_primelan_schema(
                         require_api_key = True,
@@ -157,7 +179,7 @@ def build_connection_schema(
                 )
             )
         else:
-            schema[vol.Required(CONF_PRIMELAN)] = section(
+            schema[vol.Required(DataKey.PRIMELAN)] = section(
                 vol.Schema(
                     build_primelan_schema(
                         current_use_https = flow_data.primelan.use_https,
@@ -174,23 +196,11 @@ def build_connection_schema(
 # Integration options schema (scan intervals, log fetch limit)
 # ----------------------------------------------------------------------
 
-def default_scan_intervals(*, has_native: bool) -> dict:
-    """Zones/partitions defaults, tightened when Native (local) is active."""
-    return {
-        CONF_ZONES_SCAN_INTERVAL: (
-            CONF_ZONES_SCAN_INTERVAL_NATIVE_DEFAULT if has_native else CONF_ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT
-        ),
-        CONF_PARTITIONS_SCAN_INTERVAL: (
-            CONF_PARTITIONS_SCAN_INTERVAL_NATIVE_DEFAULT if has_native else CONF_PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT
-        ),
-    }
-
-
 def build_options_schema(
         *,
         has_native: bool,
         has_primelan: bool,
-        defaults: MappingProxyType[str, Any] | None = None,
+        current_options: InimPrimeOptionsData | None = None,
 ) -> dict:
     """Build the options schema, only including fields the active backend(s) support.
 
@@ -198,25 +208,41 @@ def build_options_schema(
     PrimeLAN-exclusive today, so they're omitted entirely when PrimeLAN
     isn't configured for this entry.
     """
-    defaults = defaults or {}
-    scan_defaults = default_scan_intervals(has_native = has_native)
+    panel_log_events_fetch_limit = PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT
+    scan_intervals_defaults = ScanIntervalsDefault(
+        zones = ZONES_SCAN_INTERVAL_NATIVE_DEFAULT if has_native else ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+        partitions = PARTITIONS_SCAN_INTERVAL_NATIVE_DEFAULT if has_native else PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+        gsm = GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+        system_faults = SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+        panel_log_events = PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    )
+
+    if current_options is not None:
+        scan_interval_currents = current_options["scan_intervals"]
+        scan_intervals_defaults["zones"] = scan_interval_currents.get("zones", scan_intervals_defaults["zones"])
+        scan_intervals_defaults["partitions"] = scan_interval_currents.get("gsm", scan_intervals_defaults["partitions"])
+        scan_intervals_defaults["gsm"] = scan_interval_currents.get("gsm", scan_intervals_defaults["gsm"])
+        scan_intervals_defaults["system_faults"] = scan_interval_currents.get("system_faults", scan_intervals_defaults["system_faults"])
+        scan_intervals_defaults["panel_log_events"] = scan_interval_currents.get("panel_log_events", scan_intervals_defaults["panel_log_events"])
+
+        panel_log_events_fetch_limit = current_options.get("panel_log_events_fetch_limit", panel_log_events_fetch_limit)
 
     scan_interval_fields: dict = {
         vol.Required(
-            CONF_ZONES_SCAN_INTERVAL,
-            default = defaults.get(CONF_ZONES_SCAN_INTERVAL, scan_defaults[CONF_ZONES_SCAN_INTERVAL]),
+            OptionsKey.ScanIntervals.ZONES,
+            default = scan_intervals_defaults["zones"],
         ): NumberSelector(NumberSelectorConfig(
-            min = CONF_SCAN_INTERVAL_MIN,
-            max = CONF_SCAN_INTERVAL_MAX,
+            min = SCAN_INTERVAL_MIN,
+            max = SCAN_INTERVAL_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
         )),
         vol.Required(
-            CONF_PARTITIONS_SCAN_INTERVAL,
-            default = defaults.get(CONF_PARTITIONS_SCAN_INTERVAL, scan_defaults[CONF_PARTITIONS_SCAN_INTERVAL]),
+            OptionsKey.ScanIntervals.PARTITIONS,
+            default = scan_intervals_defaults["partitions"],
         ): NumberSelector(NumberSelectorConfig(
-            min = CONF_SCAN_INTERVAL_MIN,
-            max = CONF_SCAN_INTERVAL_MAX,
+            min = SCAN_INTERVAL_MIN,
+            max = SCAN_INTERVAL_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
         )),
@@ -224,33 +250,31 @@ def build_options_schema(
 
     if has_primelan:
         scan_interval_fields[vol.Required(
-            CONF_GSM_SCAN_INTERVAL,
-            default = defaults.get(CONF_GSM_SCAN_INTERVAL, CONF_GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT),
+            OptionsKey.ScanIntervals.GSM,
+            default = scan_intervals_defaults["gsm"],
         )] = NumberSelector(NumberSelectorConfig(
-            min = CONF_SCAN_INTERVAL_MIN,
-            max = CONF_SCAN_INTERVAL_MAX,
+            min = SCAN_INTERVAL_MIN,
+            max = SCAN_INTERVAL_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
         ))
 
         scan_interval_fields[vol.Required(
-            CONF_SYSTEM_FAULTS_SCAN_INTERVAL,
-            default = defaults.get(CONF_SYSTEM_FAULTS_SCAN_INTERVAL, CONF_SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT),
+            OptionsKey.ScanIntervals.SYSTEM_FAULTS,
+            default = scan_intervals_defaults["system_faults"],
         )] = NumberSelector(NumberSelectorConfig(
-            min = CONF_SCAN_INTERVAL_MIN,
-            max = CONF_SCAN_INTERVAL_MAX,
+            min = SCAN_INTERVAL_MIN,
+            max = SCAN_INTERVAL_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
         ))
 
         scan_interval_fields[vol.Required(
-            CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL,
-            default = defaults.get(
-                CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL, CONF_PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT
-            ),
+            OptionsKey.ScanIntervals.PANEL_LOG_EVENTS,
+            default = scan_intervals_defaults["panel_log_events"],
         )] = NumberSelector(NumberSelectorConfig(
-            min = CONF_SCAN_INTERVAL_MIN,
-            max = CONF_SCAN_INTERVAL_MAX,
+            min = SCAN_INTERVAL_MIN,
+            max = SCAN_INTERVAL_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
         ))
@@ -261,11 +285,11 @@ def build_options_schema(
 
     if has_primelan:
         schema[vol.Required(
-            CONF_PANEL_LOG_EVENTS_FETCH_LIMIT,
-            default = defaults.get(CONF_PANEL_LOG_EVENTS_FETCH_LIMIT, CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT),
+            OptionsKey.PANEL_LOG_EVENTS_FETCH_LIMIT,
+            default = panel_log_events_fetch_limit,
         )] = NumberSelector(NumberSelectorConfig(
-            min = CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MIN,
-            max = CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
+            min = PANEL_LOG_EVENTS_FETCH_LIMIT_MIN,
+            max = PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
             mode = NumberSelectorMode.BOX,
             unit_of_measurement = "milliseconds",
         ))

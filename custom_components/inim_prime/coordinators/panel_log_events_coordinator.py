@@ -8,22 +8,21 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ..gateway import InimPrimeGateway
-from ..models.log_events import UnifiedLogEvent
+from inim_prime import get_entry_options
 from ..const import (
     DOMAIN,
-    CONF_SERIAL_NUMBER,
     STORAGE_KEY_LAST_PANEL_EVENT_LOGS,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
+    PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER,
+    PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
 )
+from ..gateway import InimPrimeGateway
 from ..helpers.panel_log_events import (
     deserialize_panel_log_events,
     serialize_panel_log_events,
     async_fetch_panel_log_events,
 )
+from ..models.log_events import UnifiedLogEvent
+
 if TYPE_CHECKING:
     # only imported by the type checker -- never executes at runtime,
     # so this can't participate in a circular import
@@ -37,6 +36,7 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
     STORAGE_VERSION = 1
     panel_log_events_entity = None
     last_panel_log_events: list[UnifiedLogEvent] = []
+    panel_log_events_fetch_limit: int
 
     def __init__(
             self,
@@ -54,20 +54,15 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
         )
         self.gateway = gateway
         self.entry = entry
+        options = get_entry_options(entry)
+        self.panel_log_events_fetch_limit = options["panel_log_events_fetch_limit"]
 
         self.last_panel_log_events_store = Store(
             hass,
             self.STORAGE_VERSION,
-            f"{DOMAIN}_{entry.data[CONF_SERIAL_NUMBER]}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
+            f"{DOMAIN}_{entry.data[entry.runtime_data.serial_number]}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
         )
 
-    @property
-    def panel_log_events_fetch_limit(self) -> int:
-        # Return the current panel log events fetch limit from options.
-        return self.config_entry.options.get(
-            CONF_PANEL_LOG_EVENTS_FETCH_LIMIT,
-            CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT
-        )
 
     async def _async_update_data(self):
         try:
@@ -85,7 +80,7 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
                 _, trigger_new_events = await async_fetch_panel_log_events(
                     last_panel_log_events = self.last_panel_log_events,
                     gateway = self.gateway,
-                    limit = CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER,
+                    limit = PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER,
                 )
 
                 # If at least one new event is detected, perform a full fetch to ensure
@@ -106,13 +101,13 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
                     # more events occurred than the configured fetch limit. Perform a single
                     # refetch using the maximum allowed window to reduce the risk of missing events.
                     if (
-                            self.panel_log_events_fetch_limit < CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX and
+                            self.panel_log_events_fetch_limit < PANEL_LOG_EVENTS_FETCH_LIMIT_MAX and
                             self.panel_log_events_fetch_limit == len(current_panel_log_events_filtered)
                     ):
                         current_panel_log_events, current_panel_log_events_filtered = await async_fetch_panel_log_events(
                             last_panel_log_events = self.last_panel_log_events,
                             gateway = self.gateway,
-                            limit = CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
+                            limit = PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
                         )
 
                     # If there are any new events after filtering

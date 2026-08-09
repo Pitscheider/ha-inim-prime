@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from typing import TypedDict
 
 from ..custom_types import InimPrimeConfigData, NativeConfigData, PrimelanConfigData, InimPrimeOptionsData, \
     ScanIntervalsData
@@ -81,3 +82,10 @@ class OptionsData:
         if self.panel_log_events_fetch_limit is not None:
             options["panel_log_events_fetch_limit"] = self.panel_log_events_fetch_limit
         return options
+
+class ScanIntervalsDefault(TypedDict):
+    zones: int
+    partitions: int
+    gsm: int
+    system_faults: int
+    panel_log_events: int
