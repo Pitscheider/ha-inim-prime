@@ -220,7 +220,7 @@ def build_options_schema(
     if current_options is not None:
         scan_interval_currents = current_options["scan_intervals"]
         scan_intervals_defaults["zones"] = scan_interval_currents.get("zones", scan_intervals_defaults["zones"])
-        scan_intervals_defaults["partitions"] = scan_interval_currents.get("gsm", scan_intervals_defaults["partitions"])
+        scan_intervals_defaults["partitions"] = scan_interval_currents.get("partitions", scan_intervals_defaults["partitions"])
         scan_intervals_defaults["gsm"] = scan_interval_currents.get("gsm", scan_intervals_defaults["gsm"])
         scan_intervals_defaults["system_faults"] = scan_interval_currents.get("system_faults", scan_intervals_defaults["system_faults"])
         scan_intervals_defaults["panel_log_events"] = scan_interval_currents.get("panel_log_events", scan_intervals_defaults["panel_log_events"])
