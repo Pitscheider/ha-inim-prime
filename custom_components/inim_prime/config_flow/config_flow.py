@@ -49,9 +49,9 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
         self._migrating_from_primelan: bool | None = None
 
     def _update_migration_flags(self):
-        if self._data.use_native and not self._data.use_primelan:
+        if self._data.use_native:
             self._migrating_from_native = True
-        elif self._data.use_primelan and not self._data.use_native:
+        elif self._data.use_primelan:
             self._migrating_from_primelan = True
 
     # ------------------------------------------------------------------
