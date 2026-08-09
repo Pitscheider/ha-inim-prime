@@ -60,7 +60,7 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
         self.last_panel_log_events_store = Store(
             hass,
             self.STORAGE_VERSION,
-            f"{DOMAIN}_{entry.data[data["serial_number"]]}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
+            f"{DOMAIN}_{data["serial_number"]}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
         )
 
 
