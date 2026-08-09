@@ -204,7 +204,7 @@ def build_options_schema(
     if current_options is not None:
         # In case the user is migrating from native or primelan does not use the existing intervals for zones and partitions
         # This is to help the user who does not know that a different backend has different timings
-        if migrating_from_native or migrating_from_primelan:
+        if (migrating_from_native and has_primelan and not has_native) or (migrating_from_primelan and has_native):
             scan_intervals_defaults["zones"] = current_options.zones_scan_interval if current_options.zones_scan_interval is not None else scan_intervals_defaults["zones"]
             scan_intervals_defaults["partitions"] = current_options.partitions_scan_interval if current_options.partitions_scan_interval is not None else scan_intervals_defaults["partitions"]
         scan_intervals_defaults["gsm"] = current_options.gsm_scan_interval if current_options.gsm_scan_interval is not None else scan_intervals_defaults["gsm"]
