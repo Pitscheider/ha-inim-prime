@@ -33,12 +33,12 @@
               "port": "Port",
               "use_outer_frame": "Use Outer Frame",
               "password": "Password",
-              "use_custom_pin": "Use Custom PIN",
+              "use_custom_pin": "Use Custom PIN (not recommended)",
               "pin": "PIN"
             },
             "data_description": {
               "port": "TCP port the panel's Native protocol listens on.",
-              "use_outer_frame": "Enable only if your panel requires the outer communication frame.",
+              "use_outer_frame": "Enable if your panel mounts a PrimeLAN network card.",
               "password": "Native protocol password. Leave at the default unless you've changed it on the panel.",
               "use_custom_pin": "Enable to authenticate with a specific installer/user PIN instead of the default.",
               "pin": "PIN code used to authenticate with the panel."
@@ -110,12 +110,12 @@
               "port": "Port",
               "use_outer_frame": "Use Outer Frame",
               "password": "Password",
-              "use_custom_pin": "Use Custom PIN",
+              "use_custom_pin": "Use Custom PIN (not recommended)",
               "pin": "PIN"
             },
             "data_description": {
               "port": "TCP port the panel's Native protocol listens on.",
-              "use_outer_frame": "Enable only if your panel requires the outer communication frame.",
+              "use_outer_frame": "Enable if your panel mounts a PrimeLAN network card.",
               "password": "Leave blank to keep the current password.",
               "use_custom_pin": "Enable to authenticate with a specific installer/user PIN instead of the default.",
               "pin": "Leave blank to keep the current PIN."
