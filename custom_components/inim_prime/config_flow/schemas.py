@@ -204,7 +204,7 @@ def build_options_schema(
     if current_options is not None:
         # In case the user is migrating from native or primelan does not use the existing intervals for zones and partitions
         # This is to help the user who does not know that a different backend has different timings
-        if (
+        if not (
                 (migrating_from_native and has_primelan and not has_native) or # If was using native, but is changing to only prime, reset defaults
                 (migrating_from_primelan and not migrating_from_native and has_native) # If I was using primelan only, but I'm migrating to something which also uses native, reset defaults
         ):
