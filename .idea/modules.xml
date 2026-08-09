@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ha_inim_prime.iml" filepath="$PROJECT_DIR$/.idea/ha_inim_prime.iml" />
       <module fileurl="file://$PROJECT_DIR$/../inim-prime-native/.idea/inim-prime-native.iml" filepath="$PROJECT_DIR$/../inim-prime-native/.idea/inim-prime-native.iml" />
       <module fileurl="file://$PROJECT_DIR$/../inim-prime-primelan/.idea/inim-prime-primelan.iml" filepath="$PROJECT_DIR$/../inim-prime-primelan/.idea/inim-prime-primelan.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/inim-prime-primelan@1.iml" filepath="$PROJECT_DIR$/.idea/inim-prime-primelan@1.iml" />
     </modules>
   </component>
 </project>
