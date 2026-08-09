@@ -250,31 +250,40 @@ async def async_migrate_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) 
 
         @callback
         def update_unique_id(entity_entry: er.RegistryEntry) -> dict | None:
-            # Esempio: lo schema zone passa da
-            # "{serial}_zone_{id}_triggered" a "{serial}_zone_{id}_alarm"
-
+            new_unique_id = None
             # Zones
             if (
                     entity_entry.unique_id.endswith("_exclusion") and
                     "zone" in entity_entry.unique_id
             ):
                 new_unique_id = entity_entry.unique_id.removesuffix("_exclusion") + "_bypass"
-                return {"new_unique_id": new_unique_id}
             # Partitions
             elif (
                     entity_entry.unique_id.endswith("_mode") and
                     "partition" in entity_entry.unique_id
             ):
                 new_unique_id = entity_entry.unique_id.removesuffix("_mode") + "_arming_status"
-                return {"new_unique_id": new_unique_id}
             elif (
                     entity_entry.unique_id.endswith("_clear_alarm_memory") and
                     "partition" in entity_entry.unique_id
             ):
                 new_unique_id = entity_entry.unique_id.removesuffix("_clear_alarm_memory") + "_reset_memory"
-                return {"new_unique_id": new_unique_id}
             # Panel
-            return None
+            elif entity_entry.unique_id.endswith("_excluded_zones_count"):
+                new_unique_id = entity_entry.unique_id.removesuffix("_excluded_zones_count") + "_count_bypassed_zones"
+            elif entity_entry.unique_id.endswith("_include_all_zones"):
+                new_unique_id = entity_entry.unique_id.removesuffix("_include_all_zones") + "_disable_all_zone_bypasses"
+            elif entity_entry.unique_id.endswith("_clear_all_partitions_alarm_memory"):
+                new_unique_id = entity_entry.unique_id.removesuffix("_clear_all_partitions_alarm_memory") + "_reset_all_partition_memories"
+            elif entity_entry.unique_id.endswith("_zones_alarm_memory_count"):
+                new_unique_id = entity_entry.unique_id.removesuffix("_zones_alarm_memory_count") + "_count_zone_alarm_memories"
+            elif entity_entry.unique_id.endswith("_partitions_alarm_memory_count"):
+                new_unique_id = entity_entry.unique_id.removesuffix("_partitions_alarm_memory_count") + "_count_partition_alarm_memories"
+
+            if new_unique_id is not None:
+                return {"new_unique_id": new_unique_id}
+            else:
+                return None
 
         await er.async_migrate_entries(hass, entry.entry_id, update_unique_id)
 
