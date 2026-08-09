@@ -16,12 +16,12 @@ class InimPrimeOptionsFlowHandler(OptionsFlow):
         data = get_entry_data(self.config_entry)
         options = get_entry_options(self.config_entry)
         config_options = ConfigOptions(
-            zones_scan_interval = options["scan_intervals"]["zones"],
-            partitions_scan_interval = options["scan_intervals"]["partitions"],
-            gsm_scan_interval = options["scan_intervals"]["gsm"],
-            system_faults_scan_interval = options["scan_intervals"]["system_faults"],
-            panel_log_events_scan_interval = options["scan_intervals"]["panel_log_events"],
-            panel_log_events_fetch_limit = options["panel_log_events_fetch_limit"],
+            zones_scan_interval = options["scan_intervals"].get("zones"),
+            partitions_scan_interval = options["scan_intervals"].get("partitions"),
+            gsm_scan_interval = options["scan_intervals"].get("gsm"),
+            system_faults_scan_interval = options["scan_intervals"].get("system_faults"),
+            panel_log_events_scan_interval = options["scan_intervals"].get("panel_log_events"),
+            panel_log_events_fetch_limit = options.get("panel_log_events_fetch_limit"),
         )
 
 
