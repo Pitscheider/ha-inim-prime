@@ -291,6 +291,5 @@ def build_options_schema(
             min = PANEL_LOG_EVENTS_FETCH_LIMIT_MIN,
             max = PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
             mode = NumberSelectorMode.BOX,
-            unit_of_measurement = "milliseconds",
         ))
     return schema
