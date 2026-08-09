@@ -37,7 +37,7 @@ class PrimelanConfig:
 
 
 @dataclass
-class FlowData:
+class ConfigData:
     serial_number: str | None = None
     host: str | None = None
     use_native: bool = False
@@ -60,7 +60,7 @@ class FlowData:
 
 
 @dataclass
-class OptionsData:
+class ConfigOptions:
     zones_scan_interval: int | None = None
     partitions_scan_interval: int | None = None
     gsm_scan_interval: int | None = None

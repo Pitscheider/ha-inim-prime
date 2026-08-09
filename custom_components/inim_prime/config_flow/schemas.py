@@ -1,6 +1,4 @@
 from __future__ import annotations
-from types import MappingProxyType
-from typing import Any
 
 import voluptuous as vol
 from homeassistant.data_entry_flow import section
@@ -9,13 +7,11 @@ from homeassistant.helpers.selector import (
     NumberSelector, NumberSelectorConfig, NumberSelectorMode,
 )
 
-from ..entry_data import InimPrimeOptionsData
 from .const import (
     DataKey,
     OptionsKey,
 )
-
-from .models import FlowData, ScanIntervalsDefault
+from .models import ConfigData, ScanIntervalsDefault, ConfigOptions
 from ..const import (
     ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT,
     PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
@@ -36,18 +32,17 @@ from ..const import (
     PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
 )
 
+
 # ----------------------------------------------------------------------
 # Per-backend connection schemas
 # ----------------------------------------------------------------------
 
 def build_native_schema(
         *,
-        current_host: str | None = None,
         current_port: int | None = None,
         current_use_outer_frame: bool | None = None,
         current_use_custom_pin: bool | None = None,
         require_password: bool = True,
-        include_host: bool = True,
 ) -> dict:
     """Build the native-protocol connection schema.
 
@@ -55,10 +50,6 @@ def build_native_schema(
     level and shared with the PrimeLAN section (see build_connection_schema).
     """
     schema: dict = {}
-
-    # Host
-    if include_host:
-        schema[vol.Required(DataKey.HOST, default = current_host)] = str
 
     # Port
     schema[vol.Required(
@@ -99,17 +90,12 @@ def build_native_schema(
 
 def build_primelan_schema(
         *,
-        current_host: str | None = None,
         current_use_https: bool | None = None,
         require_api_key: bool = True,
-        include_host: bool = True,
 ) -> dict:
     """Build the PrimeLAN connection schema."""
     schema: dict = {}
 
-    # Host
-    if include_host:
-        schema[vol.Required(DataKey.HOST, default = current_host)] = str
 
     # Use https
     schema[vol.Required(
@@ -132,7 +118,7 @@ def build_primelan_schema(
 
 def build_connection_schema(
         *,
-        flow_data: FlowData,
+        flow_data: ConfigData,
 ) -> dict:
     """Build the combined connection-step schema for the chosen backend(s).
 
@@ -151,7 +137,6 @@ def build_connection_schema(
                 vol.Schema(
                     build_native_schema(
                         require_password = True,
-                        include_host = False,
                     )
                 )
             )
@@ -163,7 +148,6 @@ def build_connection_schema(
                         current_use_outer_frame = flow_data.native.use_outer_frame,
                         current_use_custom_pin = flow_data.native.pin is not None,
                         require_password = False,
-                        include_host = False,
                     )
                 )
             )
@@ -174,7 +158,6 @@ def build_connection_schema(
                 vol.Schema(
                     build_primelan_schema(
                         require_api_key = True,
-                        include_host = False,
                     )
                 )
             )
@@ -184,7 +167,6 @@ def build_connection_schema(
                     build_primelan_schema(
                         current_use_https = flow_data.primelan.use_https,
                         require_api_key = False,
-                        include_host = False,
                     )
                 )
             )
@@ -200,7 +182,7 @@ def build_options_schema(
         *,
         has_native: bool,
         has_primelan: bool,
-        current_options: InimPrimeOptionsData | None = None,
+        current_options: ConfigOptions | None = None,
 ) -> dict:
     """Build the options schema, only including fields the active backend(s) support.
 
@@ -218,14 +200,13 @@ def build_options_schema(
     )
 
     if current_options is not None:
-        scan_interval_currents = current_options["scan_intervals"]
-        scan_intervals_defaults["zones"] = scan_interval_currents.get("zones", scan_intervals_defaults["zones"])
-        scan_intervals_defaults["partitions"] = scan_interval_currents.get("partitions", scan_intervals_defaults["partitions"])
-        scan_intervals_defaults["gsm"] = scan_interval_currents.get("gsm", scan_intervals_defaults["gsm"])
-        scan_intervals_defaults["system_faults"] = scan_interval_currents.get("system_faults", scan_intervals_defaults["system_faults"])
-        scan_intervals_defaults["panel_log_events"] = scan_interval_currents.get("panel_log_events", scan_intervals_defaults["panel_log_events"])
+        scan_intervals_defaults["zones"] = current_options.zones_scan_interval if current_options.zones_scan_interval is not None else scan_intervals_defaults["zones"]
+        scan_intervals_defaults["partitions"] = current_options.partitions_scan_interval if current_options.partitions_scan_interval is not None else scan_intervals_defaults["partitions"]
+        scan_intervals_defaults["gsm"] = current_options.gsm_scan_interval if current_options.gsm_scan_interval is not None else scan_intervals_defaults["gsm"]
+        scan_intervals_defaults["system_faults"] = current_options.system_faults_scan_interval if current_options.system_faults_scan_interval is not None else scan_intervals_defaults["system_faults"]
+        scan_intervals_defaults["panel_log_events"] = current_options.panel_log_events_scan_interval if current_options.panel_log_events_scan_interval is not None else scan_intervals_defaults["panel_log_events"]
 
-        panel_log_events_fetch_limit = current_options.get("panel_log_events_fetch_limit", panel_log_events_fetch_limit)
+        panel_log_events_fetch_limit = current_options.panel_log_events_fetch_limit if current_options.panel_log_events_fetch_limit is not None else panel_log_events_fetch_limit
 
     scan_interval_fields: dict = {
         vol.Required(
