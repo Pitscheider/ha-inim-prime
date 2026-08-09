@@ -1,16 +1,14 @@
-from .coordinators import InimPrimePartitionsUpdateCoordinator
-from .const import DOMAIN, PARTITIONS_COORDINATOR
-from .entities.partition import PartitionModeSelect
+from .entities.partition import PartitionArmingStatusSelect
+from .runtime_data import InimPrimeConfigEntry
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    coordinators = hass.data[DOMAIN][entry.entry_id]["coordinators"]
-
-    partitions_coordinator: InimPrimePartitionsUpdateCoordinator = coordinators[PARTITIONS_COORDINATOR]
+async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities):
+    partitions_coordinator = entry.runtime_data.coordinators.partitions
 
     entities = []
 
-    for partition in partitions_coordinator.data.values():
-        entities.append(PartitionModeSelect(partitions_coordinator, entry, partition))
+    if partitions_coordinator is not None:
+        for partition in partitions_coordinator.gateway.partitions.values():
+            entities.append(PartitionArmingStatusSelect(partitions_coordinator, partition))
 
     async_add_entities(entities, update_before_add = True)

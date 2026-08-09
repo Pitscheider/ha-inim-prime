@@ -171,9 +171,9 @@ In the future the devices might change as well as their entities, paraphs with n
 ## Inim Prime Panel   
 This device represents the panel itself and provides different entities related to it.   
 ### Sensors   
-- **Excluded Zones**   
+- **Bypassed Zones**   
     Scan Interval: _Zones_   
-    This numerical sensor is a helper that shows the number of currently excluded zones.  
+    This numerical sensor is a helper that shows the number of currently bypassed zones.  
 - **Partitions Alarm Memory**   
     Scan Interval: _Partitions_   
     This numerical sensor is a helper that shows the number of partitions with an active alarm memory.
@@ -234,9 +234,9 @@ If you see a value that differs from `Unknown` please make an issue so that I ca
 This device type represents a zone of the Inim Prime alarm panel. The device will be named this way: `Zone zone_name`.   
 You can definitely change the name of every zone to make it represent better what it is. Zones have their own ids, so name changing is absolutely possible.   
 ### Controls   
-- **Exclusion**   
+- **Bypass**   
     Scan Interval: _Zones_   
-    This switch shows the state of exclusion of the entity. It also permits to change the exclusion status.   
+    This switch shows the state of bypass of the entity. It also permits to change the bypass status.   
    
 ### Sensors   
 - **State**   

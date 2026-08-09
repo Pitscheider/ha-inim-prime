@@ -1,49 +1,47 @@
+from __future__ import annotations
+
 import logging
-from dataclasses import dataclass, field
 from datetime import timedelta
-from typing import Dict
+from types import MappingProxyType
+from typing import TYPE_CHECKING
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from inim_prime_api import InimPrimeClient
-from inim_prime_api.models.partition import PartitionStatus
-from inim_prime_api.models.zone import ZoneStatus
-from inim_prime_api.models.system_faults import SystemFaultsStatus
-from inim_prime_api.models.gsm import GSMSStatus
-from inim_prime_api.models.output import OutputStatus
+from .base_coordinator import InimPrimeBaseCoordinator
+from ..gateway import InimPrimeGateway
+from ..models.zones import UnifiedZone
+
+if TYPE_CHECKING:
+    # only imported by the type checker -- never executes at runtime,
+    # so this can't participate in a circular import
+    from ..runtime_data import InimPrimeConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
-class InimPrimeZonesUpdateCoordinator(DataUpdateCoordinator[Dict[int, ZoneStatus]]):
+class InimPrimeZonesUpdateCoordinator(InimPrimeBaseCoordinator):
     """Coordinator to fetch zones from the panel."""
 
     def __init__(
             self,
             hass: HomeAssistant,
             update_interval: timedelta,
-            entry: ConfigEntry,
-            client: InimPrimeClient,
+            entry: InimPrimeConfigEntry,
+            gateway: InimPrimeGateway,
     ):
         super().__init__(
             hass = hass,
-            config_entry = entry,
-            logger = _LOGGER,
+            entry = entry,
+            gateway = gateway,
             name = "INIM Prime Zones",
             update_interval = update_interval,
         )
-        self.client = client
-        self.data: Dict[int, ZoneStatus] = {}  # just an empty dict
+        self.gateway = gateway
         self.entry = entry
 
-    async def _async_update_data(self) -> Dict[int, ZoneStatus]:
+    async def _async_update_data(self) -> MappingProxyType[int, UnifiedZone]:
         """Fetch data from API."""
         try:
-            zones = await self.client.get_zones_status()
-
-            self.data = zones
-
-            return self.data
+            return await self.gateway.update_zones()
         except Exception as err:
             raise UpdateFailed(err) from err

@@ -1,21 +1,22 @@
-from .coordinators import InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator
-from .const import DOMAIN, ZONES_COORDINATOR, PARTITIONS_COORDINATOR
-from .entities.panel import IncludeAllZonesButton, ClearAllPartitionsAlarmMemoryButton
-from .entities.partition import ClearPartitionAlarmMemoryButton
+from .entities.panel import DisableAllZoneBypassesButton, ResetAllPartitionMemoriesButton
+from .entities.partition import ResetPartitionMemoryButton
+from .runtime_data import InimPrimeConfigEntry
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    coordinators = hass.data[DOMAIN][entry.entry_id]["coordinators"]
+async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities):
 
-    partitions_coordinator: InimPrimePartitionsUpdateCoordinator = coordinators[PARTITIONS_COORDINATOR]
-    zones_coordinator: InimPrimeZonesUpdateCoordinator = coordinators[ZONES_COORDINATOR]
+    partitions_coordinator = entry.runtime_data.coordinators.partitions
+    zones_coordinator = entry.runtime_data.coordinators.zones
 
     entities = []
 
-    for partition in partitions_coordinator.data.values():
-        entities.append(ClearPartitionAlarmMemoryButton(partitions_coordinator, entry, partition))
+    if partitions_coordinator is not None:
+        for partition in partitions_coordinator.gateway.partitions.values():
+            entities.append(ResetPartitionMemoryButton(partitions_coordinator, partition))
 
-    entities.append(IncludeAllZonesButton(zones_coordinator, entry))
-    entities.append(ClearAllPartitionsAlarmMemoryButton(partitions_coordinator, entry))
+        entities.append(ResetAllPartitionMemoriesButton(partitions_coordinator))
+
+    if zones_coordinator is not None:
+        entities.append(DisableAllZoneBypassesButton(zones_coordinator))
 
     async_add_entities(entities, update_before_add = True)

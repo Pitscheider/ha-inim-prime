@@ -1,68 +1,66 @@
+from __future__ import annotations
+
 import logging
 from datetime import timedelta
-from typing import List
+from typing import List, TYPE_CHECKING
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
+from .base_coordinator import InimPrimeBaseCoordinator
 from ..const import (
     DOMAIN,
-    CONF_SERIAL_NUMBER,
     STORAGE_KEY_LAST_PANEL_EVENT_LOGS,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER,
-    CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
+    PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER,
+    PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
 )
+from ..gateway import InimPrimeGateway
 from ..helpers.panel_log_events import (
     deserialize_panel_log_events,
     serialize_panel_log_events,
     async_fetch_panel_log_events,
 )
-from inim_prime_api import InimPrimeClient
-from inim_prime_api.models.log_event import LogEvent
+from ..models.log_events import UnifiedLogEvent
+
+if TYPE_CHECKING:
+    # only imported by the type checker -- never executes at runtime,
+    # so this can't participate in a circular import
+    from ..runtime_data import InimPrimeConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator[List[LogEvent]]):
+class InimPrimePanelLogEventsCoordinator(InimPrimeBaseCoordinator):
     # Coordinator to fetch panel log events independently.
     STORAGE_VERSION = 1
     panel_log_events_entity = None
-    last_panel_log_events: list[LogEvent] = []
+    last_panel_log_events: list[UnifiedLogEvent] = []
 
     def __init__(
             self,
             hass: HomeAssistant,
             update_interval: timedelta,
-            entry: ConfigEntry,
-            client: InimPrimeClient,
+            entry: InimPrimeConfigEntry,
+            gateway: InimPrimeGateway,
     ):
         super().__init__(
             hass = hass,
-            config_entry = entry,
-            logger = _LOGGER,
-            name = "INIM Prime Panel Log Events",
             update_interval = update_interval,
+            entry = entry,
+            gateway = gateway,
+            name = "INIM Prime Panel Log Events",
         )
-        self.client = client
-        self.entry = entry
 
         self.last_panel_log_events_store = Store(
             hass,
             self.STORAGE_VERSION,
-            f"{DOMAIN}_{entry.data[CONF_SERIAL_NUMBER]}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
+            f"{DOMAIN}_{self.serial_number}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
         )
 
     @property
-    def panel_log_events_fetch_limit(self) -> int:
-        # Return the current panel log events fetch limit from options.
-        return self.config_entry.options.get(
-            CONF_PANEL_LOG_EVENTS_FETCH_LIMIT,
-            CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT
-        )
+    def panel_log_events_fetch_limit(self):
+        return self.entry_options["panel_log_events_fetch_limit"]
 
     async def _async_update_data(self):
         try:
@@ -79,8 +77,8 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator[List[LogEvent]]):
                 # - If no new events are detected here, the heavier full fetch is skipped
                 _, trigger_new_events = await async_fetch_panel_log_events(
                     last_panel_log_events = self.last_panel_log_events,
-                    client = self.client,
-                    limit = CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER,
+                    gateway = self.gateway,
+                    limit = PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER,
                 )
 
                 # If at least one new event is detected, perform a full fetch to ensure
@@ -92,7 +90,7 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator[List[LogEvent]]):
                     # the last known state to obtain the complete and correctly ordered list of new events.
                     current_panel_log_events, current_panel_log_events_filtered = await async_fetch_panel_log_events(
                         last_panel_log_events = self.last_panel_log_events,
-                        client = self.client,
+                        gateway = self.gateway,
                         limit = self.panel_log_events_fetch_limit,
                     )
 
@@ -101,13 +99,13 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator[List[LogEvent]]):
                     # more events occurred than the configured fetch limit. Perform a single
                     # refetch using the maximum allowed window to reduce the risk of missing events.
                     if (
-                            self.panel_log_events_fetch_limit < CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX and
+                            self.panel_log_events_fetch_limit < PANEL_LOG_EVENTS_FETCH_LIMIT_MAX and
                             self.panel_log_events_fetch_limit == len(current_panel_log_events_filtered)
                     ):
                         current_panel_log_events, current_panel_log_events_filtered = await async_fetch_panel_log_events(
                             last_panel_log_events = self.last_panel_log_events,
-                            client = self.client,
-                            limit = CONF_PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
+                            gateway = self.gateway,
+                            limit = PANEL_LOG_EVENTS_FETCH_LIMIT_MAX,
                         )
 
                     # If there are any new events after filtering
@@ -140,7 +138,7 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator[List[LogEvent]]):
 
     async def async_save_current_panel_log_events(
             self,
-            current_panel_log_events: List[LogEvent]
+            current_panel_log_events: List[UnifiedLogEvent]
     ):
         if current_panel_log_events:
             await self.last_panel_log_events_store.async_save(

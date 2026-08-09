@@ -2,160 +2,136 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 
+from .entry_data import get_entry_data
 from .const import (
     DOMAIN,
-    CONF_SERIAL_NUMBER,
-    PANEL_LOG_EVENTS_COORDINATOR,
-    ZONES_COORDINATOR,
-    PARTITIONS_COORDINATOR,
-    SYSTEM_FAULTS_COORDINATOR,
-    GSM_COORDINATOR,
 )
+from .runtime_data import InimPrimeConfigEntry
+from .gateway import InimPrimeGateway
 
-from .coordinators import (
-    InimPrimeZonesUpdateCoordinator,
-    InimPrimePartitionsUpdateCoordinator,
-    InimPrimeSystemFaultsUpdateCoordinator,
-    InimPrimeGSMUpdateCoordinator,
-    InimPrimePanelLogEventsCoordinator,
-)
 
 async def async_get_config_entry_diagnostics(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
+        hass,
+        entry: InimPrimeConfigEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for the config entry."""
-    coordinators = hass.data[DOMAIN][config_entry.entry_id]["coordinators"]
 
-    zones_coordinator: InimPrimeZonesUpdateCoordinator = coordinators[ZONES_COORDINATOR]
-    partitions_coordinator: InimPrimePartitionsUpdateCoordinator = coordinators[PARTITIONS_COORDINATOR]
-    system_faults_coordinator: InimPrimeSystemFaultsUpdateCoordinator = coordinators[SYSTEM_FAULTS_COORDINATOR]
-    gsm_coordinator: InimPrimeGSMUpdateCoordinator = coordinators[GSM_COORDINATOR]
-    panel_log_events_coordinator: InimPrimePanelLogEventsCoordinator = coordinators[PANEL_LOG_EVENTS_COORDINATOR]
+    gateway = entry.runtime_data.gateway
+    data = get_entry_data(entry)
+    diagnostics: dict[str, Any] = {"panel": {
+        "serial_number": data["serial_number"],
+        "backends_active": gateway.backends_active,
+    }, "zones": {
+        zone_id: {
+            "zone_id": zone.zone_id,
+            "terminal": zone.terminal_id,
+            "label": zone.label,
+            "state": zone.state.name if zone.state is not None else None,
+            "bypass": zone.bypass,
+            "alarm_memory": zone.alarm_memory,
+            "native_status_bytes": zone.native_status_bytes,
+            "native_state_str": zone.native_state_str,
+        }
+        for zone_id, zone in gateway.zones
+    }, "partitions": {
+        partition_id: {
+            "id": partition.partition_id,
+            "label": partition.label,
+            "partition_state": partition.partition_state.name if partition.partition_state is not None else None,
+            "arming_status": partition.arming_status.name if partition.arming_status is not None else None,
+            "alarm_memory": partition.alarm_memory,
+        }
+        for partition_id, partition in gateway.partitions
+    }}
+    system_faults = gateway.system_faults
+    if system_faults is not None:
+        diagnostics["system_faults"] = {
+            "supply_voltage": system_faults.supply_voltage,
+            "faults": [fault.name for fault in system_faults.faults],
+        }
+    gsm = gateway.gsm
+    if gsm is not None:
+        diagnostics["gsm"] = {
+            "supply_voltage": gsm.supply_voltage,
+            "firmware_version": gsm.firmware_version,
+            "operator": gsm.operator,
+            "signal_strength": gsm.signal_strength,
+            "credit": gsm.credit,
+        }
 
-    return {
-        "panel": {
-            "serial_number": config_entry.data[CONF_SERIAL_NUMBER],
-            "host": config_entry.data.get("host"),
-            "use_https": config_entry.data.get("use_https"),
-        },
-        "zones": {
-            zone_id: {
-                "id": zone.id,
-                "name": zone.name,
-                "state": zone.state.name,
-                "excluded": zone.excluded,
-                "alarm_memory": zone.alarm_memory,
-            }
-            for zone_id, zone in zones_coordinator.data.items()
-        },
-        "partitions": {
-            partition_id: {
-                "id": partition.id,
-                "name": partition.name,
-                "state": partition.state.name,
-                "mode": partition.mode.name,
-                "alarm_memory": partition.alarm_memory,
-            }
-            for partition_id, partition in partitions_coordinator.data.items()
-        },
-        "system_faults": {
-            "supply_voltage": system_faults_coordinator.data.supply_voltage,
-            "faults": [fault.name for fault in system_faults_coordinator.data.faults],
-        },
-        "gsm": {
-            "supply_voltage": gsm_coordinator.data.supply_voltage,
-            "firmware_version": gsm_coordinator.data.firmware_version,
-            "operator": gsm_coordinator.data.operator,
-            "signal_strength": gsm_coordinator.data.signal_strength,
-            "credit": gsm_coordinator.data.credit,
-        },
-    }
+    return diagnostics
 
 
 async def async_get_device_diagnostics(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
+        hass,
+        entry: InimPrimeConfigEntry,
         device: DeviceEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for a device."""
 
-    coordinators = hass.data[DOMAIN][config_entry.entry_id]["coordinators"]
+    gateway: InimPrimeGateway = entry.runtime_data.gateway
+    data = get_entry_data(entry)
+    panel_log_events_coordinator = entry.runtime_data.coordinators.panel_log_events
 
-    zones_coordinator: InimPrimeZonesUpdateCoordinator = coordinators[ZONES_COORDINATOR]
-    partitions_coordinator: InimPrimePartitionsUpdateCoordinator = coordinators[PARTITIONS_COORDINATOR]
-    system_faults_coordinator: InimPrimeSystemFaultsUpdateCoordinator = coordinators[SYSTEM_FAULTS_COORDINATOR]
-    gsm_coordinator: InimPrimeGSMUpdateCoordinator = coordinators[GSM_COORDINATOR]
-    panel_log_events_coordinator: InimPrimePanelLogEventsCoordinator = coordinators[PANEL_LOG_EVENTS_COORDINATOR]
-
-    # Extract the device type and ID from the device identifiers
-    device_info = {}
+    device_info: dict[str, Any] = {}
     for domain, dev_id in device.identifiers:
         if domain == DOMAIN:
-            # Parse the device ID to determine type
-            # Examples:
-            # - "ABC123_zone_1" -> zone device
-            # - "ABC123_partition_1" -> partition device
-            # - "ABC123_gsm" -> GSM device
-            # - "ABC123" -> panel device
-
             if "_zone_" in dev_id:
-                # Zone device
                 zone_id = int(dev_id.split("_zone_")[1])
-                zone = zones_coordinator.data.get(zone_id)
+                zone = gateway.get_zone(zone_id)
                 if zone:
                     device_info = {
                         "device_type": "zone",
-                        "zone_id": zone.id,
-                        "zone_name": zone.name,
-                        "state": zone.state.name,
-                        "excluded": zone.excluded,
+                        "zone_id": zone.zone_id,
+                        "terminal": zone.terminal_id,
+                        "zone_name": zone.label,
+                        "state": zone.state.name if zone.state is not None else None,
+                        "bypass": zone.bypass,
                         "alarm_memory": zone.alarm_memory,
-                        # Add any other zone-specific info you want
+                        "native_status_bytes": zone.native_status_bytes,
+                        "native_state_str": zone.native_state_str,
                     }
 
             elif "_partition_" in dev_id:
-                # Partition device
                 partition_id = int(dev_id.split("_partition_")[1])
-                partition = partitions_coordinator.data.get(partition_id)
+                partition = gateway.get_partition(partition_id)
                 if partition:
                     device_info = {
                         "device_type": "partition",
-                        "partition_id": partition.id,
-                        "partition_name": partition.name,
-                        "state": partition.state.name,
-                        "mode": partition.mode.name,
+                        "partition_id": partition.partition_id,
+                        "partition_name": partition.label,
+                        "partition_state": partition.partition_state.name if partition.partition_state is not None else None,
+                        "arming_status": partition.arming_status.name if partition.arming_status is not None else None,
                         "alarm_memory": partition.alarm_memory,
                     }
-
             elif "_gsm" in dev_id:
-                # GSM device
-                gsm = gsm_coordinator.data
-                device_info = {
-                    "device_type": "gsm",
-                    "supply_voltage": gsm.supply_voltage,
-                    "firmware_version": gsm.firmware_version,
-                    "operator": gsm.operator,
-                    "signal_strength": gsm.signal_strength,
-                    "credit": gsm.credit,
-                }
-
+                gsm = gateway.gsm
+                if gsm is not None:
+                    device_info = {
+                        "device_type": "gsm",
+                        "supply_voltage": gsm.supply_voltage,
+                        "firmware_version": gsm.firmware_version,
+                        "operator": gsm.operator,
+                        "signal_strength": gsm.signal_strength,
+                        "credit": gsm.credit,
+                    }
+                else:
+                    device_info = {"device_type": "gsm", "error": "PrimeLAN not configured"}
             else:
-                # Panel device
                 device_info = {
                     "device_type": "panel",
-                    "serial_number": config_entry.data[CONF_SERIAL_NUMBER],
-                    "host": config_entry.data.get("host"),
-                    "use_https": config_entry.data.get("use_https"),
-                    "supply_voltage": system_faults_coordinator.data.supply_voltage,
-                    "active_faults": [
-                        fault.name for fault in system_faults_coordinator.data.faults
-                    ],
-                    "log_events": panel_log_events_coordinator.last_panel_log_events,
+                    "serial_number": data["serial_number"],
+                    "backends_active": gateway.backends_active,
                 }
+                system_faults = gateway.system_faults
+                if system_faults is not None:
+                    device_info["supply_voltage"] = system_faults.supply_voltage
+                    device_info["active_faults"] = [
+                        fault.name for fault in system_faults.faults
+                    ]
+                if panel_log_events_coordinator is not None:
+                    device_info["log_events"] = panel_log_events_coordinator.last_panel_log_events
 
     return device_info

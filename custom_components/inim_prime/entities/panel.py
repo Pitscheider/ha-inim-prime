@@ -4,65 +4,62 @@ from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySen
 from homeassistant.components.button import ButtonEntity
 from homeassistant.components.event import EventEntity
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from inim_prime_api.helpers.partitions import clear_all_partitions_alarm_memory
-from inim_prime_api.helpers.zones import include_all_zones
-from inim_prime_api.models.log_event import LogEvent
-from inim_prime_api.models.system_faults import SystemFault
-from ..const import INIM_PRIME_DEVICE_MANUFACTURER, CONF_SERIAL_NUMBER, DOMAIN
+from ..const import INIM_PRIME_DEVICE_MANUFACTURER, DOMAIN
 from ..coordinators import InimPrimePanelLogEventsCoordinator, InimPrimeSystemFaultsUpdateCoordinator, \
     InimPrimeZonesUpdateCoordinator, InimPrimePartitionsUpdateCoordinator
+from ..models.log_events import UnifiedLogEvent
+from ..models.system_faults import UnifiedSystemFault
 
 
 def create_panel_device_info(
-        entry: ConfigEntry,
+        serial_number: str,
         domain: str = DOMAIN,
 ) -> DeviceInfo:
     return DeviceInfo(
-        identifiers = {(domain, entry.data[CONF_SERIAL_NUMBER])},
+        identifiers = {(domain, serial_number)},
         name = "Inim Prime Panel",
         model = "Prime Panel",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        serial_number = entry.data[CONF_SERIAL_NUMBER],
+        serial_number = serial_number,
     )
 
 
-SYSTEM_FAULT_NAMES: dict[SystemFault, str] = {
-    SystemFault.LOW_BATTERY: "Low Battery",
-    SystemFault.NETWORK_FAULT: "Network Fault",
-    SystemFault.NO_TELEPHONE_LINE: "No Telephone Line",
-    SystemFault.RADIO_JAMMING: "Radio Jamming",
-    SystemFault.LOW_BATTERY_WIRELESS: "Wireless Device Low Battery",
-    SystemFault.WIRELESS_DEVICE_DISAPPEARANCE: "Wireless Device Missing",
-    SystemFault.GSM_FAULT: "GSM Fault",
-    SystemFault.SENSOR_DIRTY: "Sensor Dirty",
-    SystemFault.ZONE_FAULT: "Zone Fault",
-    SystemFault.SIRENS_FAULT: "Sirens Fault",
-    SystemFault.POWER_SUPPLY_FAULT: "Power Supply Fault",
-    SystemFault.RADIO_KEYBOARDS_FAULT: "Radio Keyboards Fault",
-    SystemFault.SABOTAGE_FAULT: "Sabotage",
-    SystemFault.INTERNET_FAULT: "Internet Fault",
+SYSTEM_FAULT_NAMES: dict[UnifiedSystemFault, str] = {
+    UnifiedSystemFault.LOW_BATTERY: "Low Battery",
+    UnifiedSystemFault.NETWORK_FAULT: "Network Fault",
+    UnifiedSystemFault.NO_TELEPHONE_LINE: "No Telephone Line",
+    UnifiedSystemFault.RADIO_JAMMING: "Radio Jamming",
+    UnifiedSystemFault.LOW_BATTERY_WIRELESS: "Wireless Device Low Battery",
+    UnifiedSystemFault.WIRELESS_DEVICE_DISAPPEARANCE: "Wireless Device Missing",
+    UnifiedSystemFault.GSM_FAULT: "GSM Fault",
+    UnifiedSystemFault.SENSOR_DIRTY: "Sensor Dirty",
+    UnifiedSystemFault.ZONE_FAULT: "Zone Fault",
+    UnifiedSystemFault.SIRENS_FAULT: "Sirens Fault",
+    UnifiedSystemFault.POWER_SUPPLY_FAULT: "Power Supply Fault",
+    UnifiedSystemFault.RADIO_KEYBOARDS_FAULT: "Radio Keyboards Fault",
+    UnifiedSystemFault.SABOTAGE_FAULT: "Sabotage",
+    UnifiedSystemFault.INTERNET_FAULT: "Internet Fault",
 }
 
-SYSTEM_FAULT_ICONS: dict[SystemFault, str] = {
-    SystemFault.LOW_BATTERY: "mdi:battery-alert",
-    SystemFault.NETWORK_FAULT: "mdi:lan-disconnect",
-    SystemFault.NO_TELEPHONE_LINE: "mdi:phone-off",
-    SystemFault.RADIO_JAMMING: "mdi:signal-off",
-    SystemFault.LOW_BATTERY_WIRELESS: "mdi:battery-alert-variant",
-    SystemFault.WIRELESS_DEVICE_DISAPPEARANCE: "mdi:access-point-off",
-    SystemFault.GSM_FAULT: "mdi:signal-off",
-    SystemFault.SENSOR_DIRTY: "mdi:spray",
-    SystemFault.ZONE_FAULT: "mdi:map-marker-alert",
-    SystemFault.SIRENS_FAULT: "mdi:alarm-light-outline",
-    SystemFault.POWER_SUPPLY_FAULT: "mdi:flash-alert",
-    SystemFault.RADIO_KEYBOARDS_FAULT: "mdi:keyboard-off",
-    SystemFault.SABOTAGE_FAULT: "mdi:alert-octagon",
-    SystemFault.INTERNET_FAULT: "mdi:web-off",
+SYSTEM_FAULT_ICONS: dict[UnifiedSystemFault, str] = {
+    UnifiedSystemFault.LOW_BATTERY: "mdi:battery-alert",
+    UnifiedSystemFault.NETWORK_FAULT: "mdi:lan-disconnect",
+    UnifiedSystemFault.NO_TELEPHONE_LINE: "mdi:phone-off",
+    UnifiedSystemFault.RADIO_JAMMING: "mdi:signal-off",
+    UnifiedSystemFault.LOW_BATTERY_WIRELESS: "mdi:battery-alert-variant",
+    UnifiedSystemFault.WIRELESS_DEVICE_DISAPPEARANCE: "mdi:access-point-off",
+    UnifiedSystemFault.GSM_FAULT: "mdi:signal-off",
+    UnifiedSystemFault.SENSOR_DIRTY: "mdi:spray",
+    UnifiedSystemFault.ZONE_FAULT: "mdi:map-marker-alert",
+    UnifiedSystemFault.SIRENS_FAULT: "mdi:alarm-light-outline",
+    UnifiedSystemFault.POWER_SUPPLY_FAULT: "mdi:flash-alert",
+    UnifiedSystemFault.RADIO_KEYBOARDS_FAULT: "mdi:keyboard-off",
+    UnifiedSystemFault.SABOTAGE_FAULT: "mdi:alert-octagon",
+    UnifiedSystemFault.INTERNET_FAULT: "mdi:web-off",
 }
 
 
@@ -76,8 +73,7 @@ class SystemFaultBinarySensor(
     def __init__(
             self,
             coordinator: InimPrimeSystemFaultsUpdateCoordinator,
-            entry: ConfigEntry,
-            fault: SystemFault,
+            fault: UnifiedSystemFault,
     ):
         super().__init__(coordinator)
 
@@ -88,18 +84,18 @@ class SystemFaultBinarySensor(
             self._fault.name.replace("_", " ").title()
         )
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_panel_system_fault_{self._fault.name.lower()}"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_panel_system_fault_{self._fault.name.lower()}"
 
         self._attr_icon = SYSTEM_FAULT_ICONS.get(
             self._fault,
             "mdi:alert-circle",
         )
 
-        self._attr_device_info = create_panel_device_info(entry)
+        self._attr_device_info = create_panel_device_info(self.coordinator.serial_number)
 
     @property
     def is_on(self) -> bool:
-        system_faults = self.coordinator.data
+        system_faults = self.coordinator.gateway.system_faults
         return system_faults.has_fault(self._fault)
 
 
@@ -116,16 +112,15 @@ class PanelSupplyVoltageSensor(
     def __init__(
             self,
             coordinator: InimPrimeSystemFaultsUpdateCoordinator,
-            entry: ConfigEntry,
     ):
         super().__init__(coordinator)
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_panel_supply_voltage"
-        self._attr_device_info = create_panel_device_info(entry)
+        self._attr_unique_id = f"{self.coordinator.serial_number}_panel_supply_voltage"
+        self._attr_device_info = create_panel_device_info(self.coordinator.serial_number)
 
     @property
     def native_value(self) -> float | None:
         """Return the supply voltage."""
-        system_faults = self.coordinator.data
+        system_faults = self.coordinator.gateway.system_faults
         return system_faults.supply_voltage
 
 
@@ -139,14 +134,13 @@ class PanelLogEventsEvent(
     def __init__(
             self,
             coordinator: InimPrimePanelLogEventsCoordinator,
-            entry: ConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_panel_log_events"
-        self._attr_device_info = create_panel_device_info(entry)
+        self._attr_unique_id = f"{self.coordinator.serial_number}_panel_log_events"
+        self._attr_device_info = create_panel_device_info(self.coordinator.serial_number)
 
-    async def handle_events(self, log_events: list[LogEvent]) -> None:
+    async def handle_events(self, log_events: list[UnifiedLogEvent]) -> None:
         for log_event in log_events:
             self._trigger_event(
                 event_type = "generic",
@@ -162,90 +156,73 @@ class PanelLogEventsEvent(
             await asyncio.sleep(0.01)
 
 
-class ExcludedZonesCountSensor(
+class BypassedZonesCountSensor(
     CoordinatorEntity[InimPrimeZonesUpdateCoordinator],
     SensorEntity,
 ):
-    _attr_name = "Excluded Zones"
+    _attr_name = "Bypassed Zones"
     _attr_icon = "mdi:cancel"
 
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
     ):
         super().__init__(coordinator)
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_excluded_zones_count"
-        self._attr_device_info = create_panel_device_info(entry)
+        self._attr_unique_id = f"{self.coordinator.serial_number}_count_bypassed_zones"
+        self._attr_device_info = create_panel_device_info(self.coordinator.serial_number)
 
     @property
-    def native_value(self) -> int | None:
-        if self.coordinator.data:
-            return sum(zone.excluded for zone in self.coordinator.data.values())
-        return None
+    def native_value(self) -> int:
+        return self.coordinator.gateway.count_bypassed_zones
 
 
-class IncludeAllZonesButton(
+class DisableAllZoneBypassesButton(
     CoordinatorEntity[InimPrimeZonesUpdateCoordinator],
     ButtonEntity,
 ):
-    _attr_name = "Include All Zones"
+    _attr_name = "Disable All Zone Bypasses"
     _attr_icon = "mdi:check-all"
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_include_all_zones"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_disable_all_zone_bypasses"
 
         self._attr_device_info = create_panel_device_info(
-            entry = entry,
+            serial_number = self.coordinator.serial_number,
         )
 
     async def async_press(self) -> None:
-        zones = await self.coordinator.client.get_zones_status()
-
-        await include_all_zones(
-            zones = zones,
-            client = self.coordinator.client,
-        )
-
+        await self.coordinator.gateway.set_all_zone_bypasses(False)
         await self.coordinator.async_request_refresh()
 
 
-class ClearAllPartitionsAlarmMemoryButton(
+class ResetAllPartitionMemoriesButton(
     CoordinatorEntity[InimPrimePartitionsUpdateCoordinator],
     ButtonEntity,
 ):
-    _attr_name = "Clear All Alarm Memories"
+    _attr_name = "Reset All Partition Memories"
     _attr_icon = "mdi:alarm-light-off"
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: ConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_clear_all_partitions_alarm_memory"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_reset_all_partition_memories"
 
         self._attr_device_info = create_panel_device_info(
-            entry = entry,
+            serial_number = self.coordinator.serial_number,
         )
 
     async def async_press(self) -> None:
-        partitions = await self.coordinator.client.get_partitions_status()
-
-        await clear_all_partitions_alarm_memory(
-            partitions = partitions,
-            client = self.coordinator.client,
-        )
-
+        await self.coordinator.gateway.reset_all_partition_memories()
         await self.coordinator.async_request_refresh()
 
 
@@ -259,18 +236,15 @@ class ZonesAlarmMemoryCountSensor(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: ConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_zones_alarm_memory_count"
-        self._attr_device_info = create_panel_device_info(entry)
+        self._attr_unique_id = f"{self.coordinator.serial_number}_count_zone_alarm_memories"
+        self._attr_device_info = create_panel_device_info(self.coordinator.serial_number)
 
     @property
-    def native_value(self) -> int | None:
-        if self.coordinator.data:
-            return sum(zone.alarm_memory for zone in self.coordinator.data.values())
-        return None
+    def native_value(self) -> int:
+        return self.coordinator.gateway.count_zone_alarm_memories
 
 
 class PartitionsAlarmMemoryCountSensor(
@@ -283,15 +257,12 @@ class PartitionsAlarmMemoryCountSensor(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: ConfigEntry,
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{entry.data[CONF_SERIAL_NUMBER]}_partitions_alarm_memory_count"
-        self._attr_device_info = create_panel_device_info(entry)
+        self._attr_unique_id = f"{self.coordinator.serial_number}_count_partition_alarm_memories"
+        self._attr_device_info = create_panel_device_info(self.coordinator.serial_number)
 
     @property
-    def native_value(self) -> int | None:
-        if self.coordinator.data:
-            return sum(partition.alarm_memory for partition in self.coordinator.data.values())
-        return None
+    def native_value(self) -> int:
+        return self.coordinator.gateway.count_partition_alarm_memories
