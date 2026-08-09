@@ -263,18 +263,25 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
             assert self._data.host is not None
 
             if self._data.use_native:
+                assert self._data.native is not None
                 native_conf = user_input[DataKey.NATIVE]
+                new_password = native_conf[DataKey.Native.PASSWORD] if native_conf.get(DataKey.Native.PASSWORD) is not None else self._data.native.password
+                new_pin = None
+                if native_conf.get(DataKey.Native.USE_CUSTOM_PIN):
+                    new_pin = native_conf[DataKey.Native.PIN] if native_conf.get(DataKey.Native.PIN) is not None else self._data.native.pin
+
                 self._data.native = NativeConfig(
                     port = native_conf[DataKey.Native.PORT],
-                    password = native_conf[DataKey.Native.PASSWORD],
+                    password = new_password,
                     use_outer_frame = native_conf[DataKey.Native.USE_OUTER_FRAME],
-                    pin = native_conf[DataKey.Native.PIN] if native_conf[DataKey.Native.USE_CUSTOM_PIN] else None,
+                    pin = new_pin,
                 )
 
             if self._data.use_primelan:
+                assert self._data.primelan is not None
                 primelan_conf = user_input[DataKey.PRIMELAN]
                 self._data.primelan = PrimelanConfig(
-                    api_key = primelan_conf[DataKey.Primelan.API_KEY],
+                    api_key = primelan_conf[DataKey.Primelan.API_KEY] if primelan_conf.get(DataKey.Primelan.API_KEY) is not None else self._data.primelan.api_key,
                     use_https = primelan_conf[DataKey.Primelan.USE_HTTPS],
                 )
 
