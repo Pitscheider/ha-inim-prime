@@ -4,7 +4,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers import entity_registry as er
-
+from homeassistant.helpers import issue_registry as ir
 from inim.prime.native.client import Client as NativeClient
 from inim.prime.primelan.client import InimPrimeClient as PrimelanClient
 from .adapters.native_adapter import NativeAdapter
@@ -286,6 +286,36 @@ async def async_migrate_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) 
                 return None
 
         await er.async_migrate_entries(hass, entry.entry_id, update_unique_id)
+
+
+
+        # dentro async_migrate_entry, quando rilevi il cambio enum:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "partition_state_enum_renamed_v2",
+            is_fixable = False,
+            severity = ir.IssueSeverity.WARNING,
+            translation_key = "partition_state_enum_renamed",
+        )
+
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "partition_arming_status_enum_renamed_v2",
+            is_fixable = False,
+            severity = ir.IssueSeverity.WARNING,
+            translation_key = "partition_arming_status_enum_renamed",
+        )
+
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "zone_state_enum_renamed_v2",
+            is_fixable = False,
+            severity = ir.IssueSeverity.WARNING,
+            translation_key = "zone_state_enum_renamed",
+        )
 
         hass.config_entries.async_update_entry(
             entry,
