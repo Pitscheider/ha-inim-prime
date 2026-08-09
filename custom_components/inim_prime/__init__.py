@@ -12,6 +12,12 @@ from .adapters.primelan_adapter import PrimelanAdapter
 from .const import (
     DOMAIN,
     INIM_PRIME_DEVICE_MANUFACTURER,
+    ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+    PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT,
 )
 from .coordinators import (
     InimPrimeGSMUpdateCoordinator,
@@ -239,13 +245,13 @@ async def async_migrate_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) 
 
         new_options = InimPrimeOptionsData(
             scan_intervals = ScanIntervalsData(
-                zones = entry.options["zones_scan_interval"] * 1000,
-                partitions = entry.options["partitions_scan_interval"] * 1000,
-                gsm = entry.options["gsm_scan_interval"] * 1000,
-                system_faults = entry.options["system_faults_scan_interval"] * 1000,
-                panel_log_events = entry.options["panel_log_events_scan_interval"] * 1000,
+                zones = entry.options["zones_scan_interval"] * 1000 if entry.options.get("zones_scan_interval") is not None else ZONES_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+                partitions = entry.options["partitions_scan_interval"] * 1000 if entry.options.get("partitions_scan_interval") is not None else PARTITIONS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+                gsm = entry.options["gsm_scan_interval"] * 1000 if entry.options.get("gsm_scan_interval") is not None else GSM_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+                system_faults = entry.options["system_faults_scan_interval"] * 1000 if entry.options.get("system_faults_scan_interval") is not None else SYSTEM_FAULTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
+                panel_log_events = entry.options["panel_log_events_scan_interval"] * 1000 if entry.options.get("panel_log_events_scan_interval") is not None else PANEL_LOG_EVENTS_SCAN_INTERVAL_PRIMELAN_DEFAULT,
             ),
-            panel_log_events_fetch_limit = entry.options["panel_log_events_fetch_limit"],
+            panel_log_events_fetch_limit = entry.options.get("panel_log_events_fetch_limit", PANEL_LOG_EVENTS_FETCH_LIMIT_DEFAULT),
         )
 
         @callback
