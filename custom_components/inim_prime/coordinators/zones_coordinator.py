@@ -15,7 +15,7 @@ from ..models.zones import UnifiedZone
 if TYPE_CHECKING:
     # only imported by the type checker -- never executes at runtime,
     # so this can't participate in a circular import
-    from ..custom_types import InimPrimeConfigEntry
+    from ..runtime_data import InimPrimeConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 

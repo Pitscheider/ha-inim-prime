@@ -1,4 +1,4 @@
-from .custom_types import InimPrimeConfigEntry
+from .runtime_data import InimPrimeConfigEntry
 from .models.system_faults import UNIFIED_EXPOSED_SYSTEM_FAULTS
 
 from .entities.panel import SystemFaultBinarySensor

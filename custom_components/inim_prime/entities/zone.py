@@ -5,7 +5,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..custom_types import InimPrimeConfigEntry
+from ..runtime_data import InimPrimeConfigEntry
 from ..models.zones import UnifiedZone, UnifiedZoneState
 from ..coordinators import InimPrimeZonesUpdateCoordinator
 from ..const import INIM_PRIME_DEVICE_MANUFACTURER, DOMAIN

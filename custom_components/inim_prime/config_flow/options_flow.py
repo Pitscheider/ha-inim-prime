@@ -4,8 +4,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.config_entries import OptionsFlow
 
-from ..custom_types import get_entry_options
-from ..custom_types import get_entry_data
+from ..entry_data import get_entry_options, get_entry_data
 from .schemas import build_options_schema
 
 class InimPrimeOptionsFlowHandler(OptionsFlow):

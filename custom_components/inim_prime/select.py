@@ -1,5 +1,5 @@
 from .entities.partition import PartitionArmingStatusSelect
-from .custom_types import InimPrimeConfigEntry
+from .runtime_data import InimPrimeConfigEntry
 
 
 async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities):

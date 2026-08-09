@@ -9,7 +9,7 @@ from homeassistant.helpers.selector import (
     NumberSelector, NumberSelectorConfig, NumberSelectorMode,
 )
 
-from custom_types import InimPrimeOptionsData
+from ..entry_data import InimPrimeOptionsData
 from .const import (
     DataKey,
     OptionsKey,

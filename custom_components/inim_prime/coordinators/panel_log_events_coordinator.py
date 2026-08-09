@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ..custom_types import get_entry_options
+from ..entry_data import get_entry_options
 from ..const import (
     DOMAIN,
     STORAGE_KEY_LAST_PANEL_EVENT_LOGS,
@@ -26,7 +26,7 @@ from ..models.log_events import UnifiedLogEvent
 if TYPE_CHECKING:
     # only imported by the type checker -- never executes at runtime,
     # so this can't participate in a circular import
-    from ..custom_types import InimPrimeConfigEntry
+    from ..runtime_data import InimPrimeConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 

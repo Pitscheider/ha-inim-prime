@@ -5,7 +5,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinators import InimPrimeGSMUpdateCoordinator
 from ..const import DOMAIN, INIM_PRIME_DEVICE_MANUFACTURER
-from ..custom_types import InimPrimeConfigEntry
+from ..runtime_data import InimPrimeConfigEntry
 
 
 def create_gsm_device_info(

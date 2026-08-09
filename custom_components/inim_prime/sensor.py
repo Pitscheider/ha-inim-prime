@@ -3,7 +3,7 @@ from .entities.panel import PanelSupplyVoltageSensor, BypassedZonesCountSensor, 
     PartitionsAlarmMemoryCountSensor
 from .entities.partition import PartitionStateSensor
 from .entities.zone import ZoneStateSensor
-from .custom_types import InimPrimeConfigEntry
+from .runtime_data import InimPrimeConfigEntry
 
 
 async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities):

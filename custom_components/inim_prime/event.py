@@ -1,5 +1,5 @@
 from .entities.panel import PanelLogEventsEvent
-from .custom_types import InimPrimeConfigEntry
+from .runtime_data import InimPrimeConfigEntry
 
 async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities) -> None:
     panel_log_events_coordinator = entry.runtime_data.coordinators.panel_log_events

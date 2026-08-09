@@ -6,7 +6,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..custom_types import InimPrimeConfigEntry
+from ..runtime_data import InimPrimeConfigEntry
 from ..models.partitions import (
     UnifiedPartitionState,
     UnifiedPartition,

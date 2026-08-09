@@ -2,8 +2,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TypedDict
 
-from ..custom_types import InimPrimeConfigData, NativeConfigData, PrimelanConfigData, InimPrimeOptionsData, \
-    ScanIntervalsData
+from ..entry_data import (
+    InimPrimeConfigData,
+    NativeConfigData,
+    PrimelanConfigData,
+    InimPrimeOptionsData,
+    ScanIntervalsData,
+)
 
 
 @dataclass

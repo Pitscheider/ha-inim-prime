@@ -1,6 +1,6 @@
 from .entities.panel import DisableAllZoneBypassesButton, ResetAllPartitionMemoriesButton
 from .entities.partition import ResetPartitionMemoryButton
-from .custom_types import InimPrimeConfigEntry
+from .runtime_data import InimPrimeConfigEntry
 
 
 async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities):

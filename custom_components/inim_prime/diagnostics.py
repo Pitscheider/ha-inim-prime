@@ -7,7 +7,7 @@ from homeassistant.helpers.device_registry import DeviceEntry
 from .const import (
     DOMAIN,
 )
-from .custom_types import InimPrimeConfigEntry
+from .runtime_data import InimPrimeConfigEntry
 from .gateway import InimPrimeGateway
 
 
