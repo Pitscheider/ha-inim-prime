@@ -45,6 +45,14 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
     def __init__(self):
         self._options: ConfigOptions = ConfigOptions()
         self._data: ConfigData = ConfigData()
+        self._migrating_from_native: bool | None = None
+        self._migrating_from_primelan: bool | None = None
+
+    def _update_migration_flags(self):
+        if self._data.use_native and not self._data.use_primelan:
+            self._migrating_from_native = True
+        elif self._data.use_primelan and not self._data.use_native:
+            self._migrating_from_primelan = True
 
     # ------------------------------------------------------------------
     # Step 1: backend choice
@@ -232,7 +240,7 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
             reconfigure_entry = self._get_reconfigure_entry()
             self._init_data_from_entry(reconfigure_entry)
             self._init_options_from_entry(reconfigure_entry)
-
+            self._update_migration_flags()
         return self.async_show_menu(
             step_id = "reconfigure",
             menu_options = ["reconfigure_native_only", "reconfigure_primelan_only", "reconfigure_both"],
@@ -347,6 +355,8 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
                 has_native = self._data.use_native,
                 has_primelan = self._data.use_primelan,
                 current_options = self._options,
+                migrating_from_native = self._migrating_from_native,
+                migrating_from_primelan = self._migrating_from_primelan,
             )
         )
 

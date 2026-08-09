@@ -183,6 +183,8 @@ def build_options_schema(
         has_native: bool,
         has_primelan: bool,
         current_options: ConfigOptions | None = None,
+        migrating_from_native: bool | None = None,
+        migrating_from_primelan: bool | None = None,
 ) -> dict:
     """Build the options schema, only including fields the active backend(s) support.
 
@@ -200,8 +202,11 @@ def build_options_schema(
     )
 
     if current_options is not None:
-        scan_intervals_defaults["zones"] = current_options.zones_scan_interval if current_options.zones_scan_interval is not None else scan_intervals_defaults["zones"]
-        scan_intervals_defaults["partitions"] = current_options.partitions_scan_interval if current_options.partitions_scan_interval is not None else scan_intervals_defaults["partitions"]
+        # In case the user is migrating from native or primelan does not use the existing intervals for zones and partitions
+        # This is to help the user who does not know that a different backend has different timings
+        if migrating_from_native or migrating_from_primelan:
+            scan_intervals_defaults["zones"] = current_options.zones_scan_interval if current_options.zones_scan_interval is not None else scan_intervals_defaults["zones"]
+            scan_intervals_defaults["partitions"] = current_options.partitions_scan_interval if current_options.partitions_scan_interval is not None else scan_intervals_defaults["partitions"]
         scan_intervals_defaults["gsm"] = current_options.gsm_scan_interval if current_options.gsm_scan_interval is not None else scan_intervals_defaults["gsm"]
         scan_intervals_defaults["system_faults"] = current_options.system_faults_scan_interval if current_options.system_faults_scan_interval is not None else scan_intervals_defaults["system_faults"]
         scan_intervals_defaults["panel_log_events"] = current_options.panel_log_events_scan_interval if current_options.panel_log_events_scan_interval is not None else scan_intervals_defaults["panel_log_events"]
