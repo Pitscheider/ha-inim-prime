@@ -168,7 +168,7 @@ class BypassedZonesCountSensor(
             coordinator: InimPrimeZonesUpdateCoordinator,
     ):
         super().__init__(coordinator)
-        self._attr_unique_id = f"{self.coordinator.serial_number}_bypassed_zones_count"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_count_bypassed_zones"
         self._attr_device_info = create_panel_device_info(self.coordinator.serial_number)
 
     @property
@@ -215,7 +215,7 @@ class ResetAllPartitionMemoriesButton(
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{self.coordinator.serial_number}_clear_all_partitions_alarm_memory"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_reset_all_partition_memories"
 
         self._attr_device_info = create_panel_device_info(
             serial_number = self.coordinator.serial_number,
@@ -239,7 +239,7 @@ class ZonesAlarmMemoryCountSensor(
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{self.coordinator.serial_number}_zones_alarm_memory_count"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_count_zone_alarm_memories"
         self._attr_device_info = create_panel_device_info(self.coordinator.serial_number)
 
     @property
@@ -260,7 +260,7 @@ class PartitionsAlarmMemoryCountSensor(
     ):
         super().__init__(coordinator)
 
-        self._attr_unique_id = f"{self.coordinator.serial_number}_partitions_alarm_memory_count"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_count_partition_alarm_memories"
         self._attr_device_info = create_panel_device_info(self.coordinator.serial_number)
 
     @property

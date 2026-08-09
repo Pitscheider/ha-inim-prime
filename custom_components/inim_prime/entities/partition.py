@@ -68,7 +68,7 @@ class PartitionArmingStatusSelect(
     CoordinatorEntity[InimPrimePartitionsUpdateCoordinator],
     SelectEntity,
 ):
-    _attr_name = "Mode"
+    _attr_name = "Arming Status"
     _attr_icon = "mdi:shield-lock"
     _attr_options = [mode.name for mode in UnifiedArmingStatus]
 
@@ -80,7 +80,7 @@ class PartitionArmingStatusSelect(
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{self.coordinator.serial_number}_partition_{self.partition_id}_mode"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_partition_{self.partition_id}_arming_status"
 
         self._attr_device_info = create_partition_device_info(
             partition_id = self.partition_id,
@@ -109,7 +109,7 @@ class ResetPartitionMemoryButton(
     CoordinatorEntity[InimPrimePartitionsUpdateCoordinator],
     ButtonEntity,
 ):
-    _attr_name = "Clear Alarm Memory"
+    _attr_name = "Reset Memory"
     _attr_icon = "mdi:alarm-light-off"
 
     def __init__(
@@ -120,7 +120,7 @@ class ResetPartitionMemoryButton(
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{self.coordinator.serial_number}_partition_{self.partition_id}_clear_alarm_memory"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_partition_{self.partition_id}_reset_memory"
 
         self._attr_device_info = create_partition_device_info(
             partition_id = self.partition_id,
