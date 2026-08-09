@@ -238,11 +238,11 @@ async def async_migrate_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) 
 
         new_options = InimPrimeOptionsData(
             scan_intervals = ScanIntervalsData(
-                zones = entry.options["scan_intervals"]["zones_scan_interval"],
-                partitions = entry.options["scan_intervals"]["partitions_scan_interval"],
-                gsm = entry.options["scan_intervals"]["gsm_scan_interval"],
-                system_faults = entry.options["scan_intervals"]["system_faults_scan_interval"],
-                panel_log_events = entry.options["scan_intervals"]["panel_log_events_scan_interval"],
+                zones = entry.options["scan_intervals"]["zones_scan_interval"] * 1000,
+                partitions = entry.options["scan_intervals"]["partitions_scan_interval"] * 1000,
+                gsm = entry.options["scan_intervals"]["gsm_scan_interval"] * 1000,
+                system_faults = entry.options["scan_intervals"]["system_faults_scan_interval"] * 1000,
+                panel_log_events = entry.options["scan_intervals"]["panel_log_events_scan_interval"] * 1000,
             ),
             panel_log_events_fetch_limit = entry.options["panel_log_events_fetch_limit"],
         )
