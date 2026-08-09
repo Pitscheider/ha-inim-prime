@@ -2,13 +2,13 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import OptionsFlow
+from homeassistant.config_entries import OptionsFlowWithReload
 
 from .models import ConfigOptions
 from ..entry_data import get_entry_options, get_entry_data
 from .schemas import build_options_schema
 
-class InimPrimeOptionsFlowHandler(OptionsFlow):
+class InimPrimeOptionsFlowHandler(OptionsFlowWithReload):
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
         if user_input is not None:
             return self.async_create_entry(title = "", data = user_input)

@@ -81,8 +81,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) ->
     """Set up INIM Prime integration."""
     hass.data.setdefault(DOMAIN, {})
 
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
     # Get the data as typed dict
     data = get_entry_data(entry)
     options = get_entry_options(entry)
@@ -204,11 +202,6 @@ async def async_remove_config_entry_device(
             return False
 
     return True
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) -> None:
-    """Reload INIM Prime config entry."""
-    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) -> bool:
