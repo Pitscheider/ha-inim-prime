@@ -263,7 +263,7 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
             assert self._data.host is not None
 
             if self._data.use_native:
-                assert self._data.native is not None
+
                 native_conf = user_input[DataKey.NATIVE]
                 new_password = native_conf[DataKey.Native.PASSWORD] if native_conf.get(DataKey.Native.PASSWORD) is not None else self._data.native.password
                 new_pin = None
@@ -278,7 +278,6 @@ class InimPrimeConfigFlow(config_entries.ConfigFlow, domain = DOMAIN):
                 )
 
             if self._data.use_primelan:
-                assert self._data.primelan is not None
                 primelan_conf = user_input[DataKey.PRIMELAN]
                 self._data.primelan = PrimelanConfig(
                     api_key = primelan_conf[DataKey.Primelan.API_KEY] if primelan_conf.get(DataKey.Primelan.API_KEY) is not None else self._data.primelan.api_key,
