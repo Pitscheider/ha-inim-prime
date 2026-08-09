@@ -1,10 +1,17 @@
+from __future__ import annotations
+
 from datetime import timedelta
+from typing import TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant, _LOGGER
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
+if TYPE_CHECKING:
+    # only imported by the type checker -- never executes at runtime,
+    # so this can't participate in a circular import
+    from ..runtime_data import InimPrimeConfigEntry
+
 from ..gateway import InimPrimeGateway
-from ..runtime_data import InimPrimeConfigEntry
 from ..entry_data import InimPrimeConfigData, InimPrimeOptionsData, get_entry_data, get_entry_options
 
 
