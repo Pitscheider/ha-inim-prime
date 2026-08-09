@@ -12,11 +12,11 @@ async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entitie
 
     if partitions_coordinator is not None:
         for partition in partitions_coordinator.gateway.partitions.values():
-            entities.append(ResetPartitionMemoryButton(partitions_coordinator, entry, partition))
+            entities.append(ResetPartitionMemoryButton(partitions_coordinator, partition))
 
-        entities.append(ResetAllPartitionMemoriesButton(partitions_coordinator, entry))
+        entities.append(ResetAllPartitionMemoriesButton(partitions_coordinator))
 
     if zones_coordinator is not None:
-        entities.append(DisableAllZoneBypassesButton(zones_coordinator, entry))
+        entities.append(DisableAllZoneBypassesButton(zones_coordinator))
 
     async_add_entities(entities, update_before_add = True)

@@ -6,8 +6,9 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
+from .base_coordinator import InimPrimeBaseCoordinator
 from ..gateway import InimPrimeGateway
 from ..models.partitions import UnifiedPartition
 
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-class InimPrimePartitionsUpdateCoordinator(DataUpdateCoordinator):
+class InimPrimePartitionsUpdateCoordinator(InimPrimeBaseCoordinator):
     """Coordinator to fetch partitions from the panel."""
 
     def __init__(
@@ -30,13 +31,11 @@ class InimPrimePartitionsUpdateCoordinator(DataUpdateCoordinator):
     ):
         super().__init__(
             hass = hass,
-            config_entry = entry,
-            logger = _LOGGER,
+            entry = entry,
+            gateway = gateway,
             name = "INIM Prime Partitions",
             update_interval = update_interval,
         )
-        self.gateway = gateway
-        self.entry = entry
 
     async def _async_update_data(self) -> MappingProxyType[int, UnifiedPartition]:
         """Fetch data from API."""

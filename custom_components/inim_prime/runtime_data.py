@@ -38,7 +38,6 @@ class InimPrimeCoordinators:
 
 @dataclass
 class InimPrimeRuntimeData:
-    serial_number: str
     gateway: InimPrimeGateway
     coordinators: InimPrimeCoordinators
 

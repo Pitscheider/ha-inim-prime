@@ -5,23 +5,23 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..runtime_data import InimPrimeConfigEntry
-from ..models.zones import UnifiedZone, UnifiedZoneState
-from ..coordinators import InimPrimeZonesUpdateCoordinator
 from ..const import INIM_PRIME_DEVICE_MANUFACTURER, DOMAIN
+from ..coordinators import InimPrimeZonesUpdateCoordinator
+from ..models.zones import UnifiedZone, UnifiedZoneState
+
 
 def create_zone_device_info(
-        entry: InimPrimeConfigEntry,
         zone_id: int,
         zone_name: str,
+        serial_number: str,
         domain: str = DOMAIN,
 ) -> DeviceInfo:
     return DeviceInfo(
-        identifiers = {(domain, f"{entry.runtime_data.serial_number}_zone_{zone_id}")},
+        identifiers = {(domain, f"{serial_number}_zone_{zone_id}")},
         name = f"Zone {zone_name}",
         model = "Prime Zone",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        via_device = (domain, entry.runtime_data.serial_number),
+        via_device = (domain, serial_number),
     )
 
 
@@ -34,18 +34,17 @@ class ZoneStateBinarySensor(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: InimPrimeConfigEntry,
             zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
         self.zone_id = zone.zone_id
-        self._attr_unique_id = f"{entry.runtime_data.serial_number}_zone_{self.zone_id}_triggered"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_zone_{self.zone_id}_triggered"
 
         self._attr_device_info = create_zone_device_info(
-            entry = entry,
             zone_id = self.zone_id,
             zone_name = zone.label,
+            serial_number = self.coordinator.serial_number,
         )
 
     @property
@@ -72,18 +71,17 @@ class ZoneStateSensor(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: InimPrimeConfigEntry,
             zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
         self.zone_id = zone.zone_id
-        self._attr_unique_id = f"{entry.runtime_data.serial_number}_zone_{self.zone_id}_state"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_zone_{self.zone_id}_state"
 
         self._attr_device_info = create_zone_device_info(
-            entry = entry,
             zone_id = self.zone_id,
             zone_name = zone.label,
+            serial_number = self.coordinator.serial_number,
         )
 
     @property
@@ -106,18 +104,17 @@ class ZoneAlarmMemoryBinarySensor(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: InimPrimeConfigEntry,
             zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
         self.zone_id = zone.zone_id
-        self._attr_unique_id = f"{entry.runtime_data.serial_number}_zone_{self.zone_id}_alarm_memory"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_zone_{self.zone_id}_alarm_memory"
 
         self._attr_device_info = create_zone_device_info(
-            entry = entry,
             zone_id = self.zone_id,
             zone_name = zone.label,
+            serial_number = self.coordinator.serial_number,
         )
 
     @property
@@ -139,18 +136,17 @@ class ZoneBypassSwitch(
     def __init__(
             self,
             coordinator: InimPrimeZonesUpdateCoordinator,
-            entry: InimPrimeConfigEntry,
             zone: UnifiedZone,
     ):
         super().__init__(coordinator)
 
         self.zone_id = zone.zone_id
-        self._attr_unique_id = f"{entry.runtime_data.serial_number}_zone_{self.zone_id}_bypass"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_zone_{self.zone_id}_bypass"
 
         self._attr_device_info = create_zone_device_info(
-            entry = entry,
             zone_id = self.zone_id,
             zone_name = zone.label,
+            serial_number = self.coordinator.serial_number,
         )
 
     @property

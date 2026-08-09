@@ -7,7 +7,7 @@ async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entitie
     entities = []
 
     if panel_log_events_coordinator is not None:
-        panel_log_events_event = PanelLogEventsEvent(panel_log_events_coordinator, entry)
+        panel_log_events_event = PanelLogEventsEvent(panel_log_events_coordinator)
         panel_log_events_coordinator.panel_log_events_entity = panel_log_events_event
 
         entities.append(panel_log_events_event)

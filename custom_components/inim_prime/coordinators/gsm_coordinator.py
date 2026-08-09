@@ -5,8 +5,9 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
+from .base_coordinator import InimPrimeBaseCoordinator
 from ..gateway import InimPrimeGateway
 from ..models.gsm import UnifiedGSM
 
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-class InimPrimeGSMUpdateCoordinator(DataUpdateCoordinator):
+class InimPrimeGSMUpdateCoordinator(InimPrimeBaseCoordinator):
     """Coordinator to fetch GSM from the panel."""
 
     def __init__(
@@ -29,13 +30,12 @@ class InimPrimeGSMUpdateCoordinator(DataUpdateCoordinator):
     ):
         super().__init__(
             hass = hass,
-            config_entry = entry,
-            logger = _LOGGER,
+            entry = entry,
+            gateway = gateway,
             name = "INIM Prime GSM",
             update_interval = update_interval,
         )
-        self.gateway = gateway
-        self.entry = entry
+
 
     async def _async_update_data(self) -> UnifiedGSM:
         """Fetch data from API."""

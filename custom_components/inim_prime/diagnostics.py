@@ -4,6 +4,7 @@ from typing import Any
 
 from homeassistant.helpers.device_registry import DeviceEntry
 
+from .entry_data import get_entry_data
 from .const import (
     DOMAIN,
 )
@@ -18,9 +19,9 @@ async def async_get_config_entry_diagnostics(
     """Return diagnostics for the config entry."""
 
     gateway = entry.runtime_data.gateway
-
+    data = get_entry_data(entry)
     diagnostics: dict[str, Any] = {"panel": {
-        "serial_number": entry.runtime_data.serial_number,
+        "serial_number": data["serial_number"],
         "backends_active": gateway.backends_active,
     }, "zones": {
         zone_id: {
@@ -71,6 +72,7 @@ async def async_get_device_diagnostics(
     """Return diagnostics for a device."""
 
     gateway: InimPrimeGateway = entry.runtime_data.gateway
+    data = get_entry_data(entry)
     panel_log_events_coordinator = entry.runtime_data.coordinators.panel_log_events
 
     device_info: dict[str, Any] = {}
@@ -120,7 +122,7 @@ async def async_get_device_diagnostics(
             else:
                 device_info = {
                     "device_type": "panel",
-                    "serial_number": entry.runtime_data.serial_number,
+                    "serial_number": data["serial_number"],
                     "backends_active": gateway.backends_active,
                 }
                 system_faults = gateway.system_faults

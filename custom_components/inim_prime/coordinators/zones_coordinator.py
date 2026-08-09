@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import logging
-
 from datetime import timedelta
 from types import MappingProxyType
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
+from .base_coordinator import InimPrimeBaseCoordinator
 from ..gateway import InimPrimeGateway
 from ..models.zones import UnifiedZone
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-class InimPrimeZonesUpdateCoordinator(DataUpdateCoordinator):
+class InimPrimeZonesUpdateCoordinator(InimPrimeBaseCoordinator):
     """Coordinator to fetch zones from the panel."""
 
     def __init__(
@@ -31,8 +31,8 @@ class InimPrimeZonesUpdateCoordinator(DataUpdateCoordinator):
     ):
         super().__init__(
             hass = hass,
-            config_entry = entry,
-            logger = _LOGGER,
+            entry = entry,
+            gateway = gateway,
             name = "INIM Prime Zones",
             update_interval = update_interval,
         )

@@ -1,10 +1,8 @@
 from datetime import timedelta
-from typing import Final
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
-
 
 from inim.prime.native.client import Client as NativeClient
 from inim.prime.primelan.client import InimPrimeClient as PrimelanClient
@@ -21,20 +19,18 @@ from .coordinators import (
     InimPrimePanelLogEventsCoordinator,
     InimPrimeSystemFaultsUpdateCoordinator,
 )
-from .runtime_data import (
-    InimPrimeConfigEntry,
-    InimPrimeCoordinators,
-    InimPrimeRuntimeData,
-)
-
 from .entry_data import (
     get_entry_options,
     get_entry_data,
     InimPrimeConfigData,
     PrimelanConfigData,
 )
-
 from .gateway import InimPrimeGateway
+from .runtime_data import (
+    InimPrimeConfigEntry,
+    InimPrimeCoordinators,
+    InimPrimeRuntimeData,
+)
 
 PLATFORMS = [
     "binary_sensor",
@@ -155,7 +151,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) ->
             update_interval = timedelta(milliseconds = scan_intervals["panel_log_events"]),
             entry = entry,
             gateway = inim_gateway,
-            panel_log_events_fetch_limit = options["panel_log_events_fetch_limit"],
         )
 
     if zones_coordinator is not None:
@@ -177,7 +172,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) ->
     # Typed, no hass.data[DOMAIN][entry.entry_id] bookkeeping, no manual
     # cleanup of a dict key on unload -- HA clears runtime_data for us.
     entry.runtime_data = InimPrimeRuntimeData(
-        serial_number = data["serial_number"],
         gateway = inim_gateway,
         coordinators = InimPrimeCoordinators(
             zones = zones_coordinator,
@@ -205,7 +199,8 @@ async def async_remove_config_entry_device(
     """Allow removing sub-devices but not the panel."""
     for domain, dev_id in device_entry.identifiers:
         # Prevent deleting the panel itself
-        if dev_id == config_entry.runtime_data.serial_number:
+        data = get_entry_data(config_entry)
+        if dev_id == data["serial_number"]:
             return False
 
     return True

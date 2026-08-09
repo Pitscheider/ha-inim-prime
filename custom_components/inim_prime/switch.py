@@ -9,6 +9,6 @@ async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entitie
 
     if zones_coordinator is not None:
         for zone in zones_coordinator.gateway.zones.values():
-            entities.append(ZoneBypassSwitch(zones_coordinator, entry, zone))
+            entities.append(ZoneBypassSwitch(zones_coordinator, zone))
 
     async_add_entities(entities, update_before_add = True)

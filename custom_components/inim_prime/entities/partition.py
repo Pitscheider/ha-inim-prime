@@ -17,17 +17,17 @@ from ..const import INIM_PRIME_DEVICE_MANUFACTURER, DOMAIN
 
 
 def create_partition_device_info(
-        entry: InimPrimeConfigEntry,
         partition_id: int,
         partition_name: str,
+        serial_number: str,
         domain: str = DOMAIN,
 ) -> DeviceInfo:
     return DeviceInfo(
-        identifiers = {(domain, f"{entry.runtime_data.serial_number}_partition_{partition_id}")},
+        identifiers = {(domain, f"{serial_number}_partition_{partition_id}")},
         name = f"Partition {partition_name}",
         model = "Prime Partition",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        via_device = (domain, entry.runtime_data.serial_number),
+        via_device = (domain, serial_number),
     )
 
 
@@ -43,18 +43,17 @@ class PartitionStateSensor(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: InimPrimeConfigEntry,
             partition: UnifiedPartition,
     ):
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{entry.runtime_data.serial_number}_partition_{self.partition_id}_state"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_partition_{self.partition_id}_state"
 
         self._attr_device_info = create_partition_device_info(
-            entry = entry,
             partition_id = self.partition_id,
             partition_name = partition.label,
+            serial_number = self.coordinator.serial_number,
         )
 
     @property
@@ -76,18 +75,17 @@ class PartitionArmingStatusSelect(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: InimPrimeConfigEntry,
             partition: UnifiedPartition
     ):
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{entry.runtime_data.serial_number}_partition_{self.partition_id}_mode"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_partition_{self.partition_id}_mode"
 
         self._attr_device_info = create_partition_device_info(
-            entry = entry,
             partition_id = self.partition_id,
             partition_name = partition.label,
+            serial_number = self.coordinator.serial_number,
         )
 
     @property
@@ -117,18 +115,17 @@ class ResetPartitionMemoryButton(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: InimPrimeConfigEntry,
             partition: UnifiedPartition,
     ):
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{entry.runtime_data.serial_number}_partition_{self.partition_id}_clear_alarm_memory"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_partition_{self.partition_id}_clear_alarm_memory"
 
         self._attr_device_info = create_partition_device_info(
-            entry = entry,
             partition_id = self.partition_id,
             partition_name = partition.label,
+            serial_number = self.coordinator.serial_number,
         )
 
     async def async_press(self) -> None:
@@ -151,18 +148,17 @@ class PartitionAlarmMemoryBinarySensor(
     def __init__(
             self,
             coordinator: InimPrimePartitionsUpdateCoordinator,
-            entry: InimPrimeConfigEntry,
             partition: UnifiedPartition
     ):
         super().__init__(coordinator)
 
         self.partition_id = partition.partition_id
-        self._attr_unique_id = f"{entry.runtime_data.serial_number}_partition_{self.partition_id}_alarm_memory"
+        self._attr_unique_id = f"{self.coordinator.serial_number}_partition_{self.partition_id}_alarm_memory"
 
         self._attr_device_info = create_partition_device_info(
-            entry = entry,
             partition_id = self.partition_id,
             partition_name = partition.label,
+            serial_number = self.coordinator.serial_number,
         )
 
     @property

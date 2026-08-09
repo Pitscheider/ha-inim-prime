@@ -6,9 +6,9 @@ from typing import List, TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from ..entry_data import get_entry_options, get_entry_data
+from .base_coordinator import InimPrimeBaseCoordinator
 from ..const import (
     DOMAIN,
     STORAGE_KEY_LAST_PANEL_EVENT_LOGS,
@@ -31,12 +31,11 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
+class InimPrimePanelLogEventsCoordinator(InimPrimeBaseCoordinator):
     # Coordinator to fetch panel log events independently.
     STORAGE_VERSION = 1
     panel_log_events_entity = None
     last_panel_log_events: list[UnifiedLogEvent] = []
-    panel_log_events_fetch_limit: int
 
     def __init__(
             self,
@@ -44,25 +43,24 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
             update_interval: timedelta,
             entry: InimPrimeConfigEntry,
             gateway: InimPrimeGateway,
-            panel_log_events_fetch_limit: int,
     ):
         super().__init__(
             hass = hass,
-            config_entry = entry,
-            logger = _LOGGER,
-            name = "INIM Prime Panel Log Events",
             update_interval = update_interval,
+            entry = entry,
+            gateway = gateway,
+            name = "INIM Prime Panel Log Events",
         )
-        self.gateway = gateway
-        data = get_entry_data(entry)
-        self.panel_log_events_fetch_limit = panel_log_events_fetch_limit
 
         self.last_panel_log_events_store = Store(
             hass,
             self.STORAGE_VERSION,
-            f"{DOMAIN}_{data["serial_number"]}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
+            f"{DOMAIN}_{self.serial_number}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
         )
 
+    @property
+    def panel_log_events_fetch_limit(self):
+        return self.entry_options["panel_log_events_fetch_limit"]
 
     async def _async_update_data(self):
         try:

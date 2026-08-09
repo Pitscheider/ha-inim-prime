@@ -16,24 +16,24 @@ async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entitie
 
     if zones_coordinator is not None:
         for zone in zones_coordinator.gateway.zones.values():
-            entities.append(ZoneStateSensor(zones_coordinator, entry, zone))
+            entities.append(ZoneStateSensor(zones_coordinator, zone))
 
-        entities.append(BypassedZonesCountSensor(zones_coordinator, entry))
-        entities.append(ZonesAlarmMemoryCountSensor(zones_coordinator, entry))
+        entities.append(BypassedZonesCountSensor(zones_coordinator))
+        entities.append(ZonesAlarmMemoryCountSensor(zones_coordinator))
 
     if partitions_coordinator is not None:
         for partition in partitions_coordinator.gateway.partitions.values():
-            entities.append(PartitionStateSensor(partitions_coordinator, entry, partition))
+            entities.append(PartitionStateSensor(partitions_coordinator, partition))
 
-        entities.append(PartitionsAlarmMemoryCountSensor(partitions_coordinator, entry))
+        entities.append(PartitionsAlarmMemoryCountSensor(partitions_coordinator))
 
     if system_faults_coordinator is not None:
-        entities.append(PanelSupplyVoltageSensor(system_faults_coordinator, entry))
+        entities.append(PanelSupplyVoltageSensor(system_faults_coordinator))
 
     if gsm_coordinator is not None:
-        entities.append(GSMSupplyVoltageSensor(gsm_coordinator, entry))
-        entities.append(GSMOperatorSensor(gsm_coordinator, entry))
-        entities.append(GSMSignalStrengthSensor(gsm_coordinator, entry))
-        entities.append(GSMCreditSensor(gsm_coordinator, entry))
+        entities.append(GSMSupplyVoltageSensor(gsm_coordinator))
+        entities.append(GSMOperatorSensor(gsm_coordinator))
+        entities.append(GSMSignalStrengthSensor(gsm_coordinator))
+        entities.append(GSMCreditSensor(gsm_coordinator))
 
     async_add_entities(entities, update_before_add = True)

@@ -16,17 +16,17 @@ async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entitie
 
     if zones_coordinator is not None:
         for zone in zones_coordinator.gateway.zones.values():
-            entities.append(ZoneStateBinarySensor(zones_coordinator, entry, zone))
-            entities.append(ZoneAlarmMemoryBinarySensor(zones_coordinator, entry, zone))
+            entities.append(ZoneStateBinarySensor(zones_coordinator, zone))
+            entities.append(ZoneAlarmMemoryBinarySensor(zones_coordinator, zone))
 
     if partitions_coordinator is not None:
         for partition in partitions_coordinator.gateway.partitions.values():
-            entities.append(PartitionAlarmMemoryBinarySensor(partitions_coordinator, entry, partition))
+            entities.append(PartitionAlarmMemoryBinarySensor(partitions_coordinator, partition))
 
     if system_faults_coordinator is not None:
         for exposedSystemFault in UNIFIED_EXPOSED_SYSTEM_FAULTS:
             entities.append(
-                SystemFaultBinarySensor(system_faults_coordinator, entry, exposedSystemFault)
+                SystemFaultBinarySensor(system_faults_coordinator, exposedSystemFault)
             )
 
     async_add_entities(entities, update_before_add = True)
