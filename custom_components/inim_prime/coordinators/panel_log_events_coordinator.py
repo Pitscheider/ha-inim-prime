@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ..entry_data import get_entry_options
+from ..entry_data import get_entry_options, get_entry_data
 from ..const import (
     DOMAIN,
     STORAGE_KEY_LAST_PANEL_EVENT_LOGS,
@@ -44,6 +44,7 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
             update_interval: timedelta,
             entry: InimPrimeConfigEntry,
             gateway: InimPrimeGateway,
+            panel_log_events_fetch_limit: int,
     ):
         super().__init__(
             hass = hass,
@@ -53,14 +54,13 @@ class InimPrimePanelLogEventsCoordinator(DataUpdateCoordinator):
             update_interval = update_interval,
         )
         self.gateway = gateway
-        self.entry = entry
-        options = get_entry_options(entry)
-        self.panel_log_events_fetch_limit = options["panel_log_events_fetch_limit"]
+        data = get_entry_data(entry)
+        self.panel_log_events_fetch_limit = panel_log_events_fetch_limit
 
         self.last_panel_log_events_store = Store(
             hass,
             self.STORAGE_VERSION,
-            f"{DOMAIN}_{entry.data[entry.runtime_data.serial_number]}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
+            f"{DOMAIN}_{entry.data[data["serial_number"]]}_{STORAGE_KEY_LAST_PANEL_EVENT_LOGS}",
         )
 
 

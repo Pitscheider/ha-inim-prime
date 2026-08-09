@@ -155,6 +155,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) ->
             update_interval = timedelta(milliseconds = scan_intervals["panel_log_events"]),
             entry = entry,
             gateway = inim_gateway,
+            panel_log_events_fetch_limit = options["panel_log_events_fetch_limit"],
         )
 
     if zones_coordinator is not None:
