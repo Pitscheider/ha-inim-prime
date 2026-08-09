@@ -1,8 +1,9 @@
 from datetime import timedelta
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
+from homeassistant.helpers import entity_registry as er
 
 from inim.prime.native.client import Client as NativeClient
 from inim.prime.primelan.client import InimPrimeClient as PrimelanClient
@@ -246,6 +247,36 @@ async def async_migrate_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) 
             ),
             panel_log_events_fetch_limit = entry.options["panel_log_events_fetch_limit"],
         )
+
+        @callback
+        def update_unique_id(entity_entry: er.RegistryEntry) -> dict | None:
+            # Esempio: lo schema zone passa da
+            # "{serial}_zone_{id}_triggered" a "{serial}_zone_{id}_alarm"
+
+            # Zones
+            if (
+                    entity_entry.unique_id.endswith("_exclusion") and
+                    "zone" in entity_entry.unique_id
+            ):
+                new_unique_id = entity_entry.unique_id.removesuffix("_exclusion") + "_bypass"
+                return {"new_unique_id": new_unique_id}
+            # Partitions
+            elif (
+                    entity_entry.unique_id.endswith("_mode") and
+                    "partition" in entity_entry.unique_id
+            ):
+                new_unique_id = entity_entry.unique_id.removesuffix("_mode") + "_arming_status"
+                return {"new_unique_id": new_unique_id}
+            elif (
+                    entity_entry.unique_id.endswith("_clear_alarm_memory") and
+                    "partition" in entity_entry.unique_id
+            ):
+                new_unique_id = entity_entry.unique_id.removesuffix("_clear_alarm_memory") + "_reset_memory"
+                return {"new_unique_id": new_unique_id}
+            # Panel
+            return None
+
+        await er.async_migrate_entries(hass, entry.entry_id, update_unique_id)
 
         hass.config_entries.async_update_entry(
             entry,
