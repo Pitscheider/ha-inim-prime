@@ -30,6 +30,7 @@ class ZoneStateBinarySensor(
     BinarySensorEntity,
 ):
     _attr_name = None
+    _attr_device_class = BinarySensorDeviceClass.SAFETY
 
     def __init__(
             self,
