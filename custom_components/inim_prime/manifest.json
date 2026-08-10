@@ -1,11 +1,11 @@
 {
   "domain": "inim_prime",
   "name": "Inim Prime",
-  "version": "0.2.0-beta.2",
+  "version": "0.2.0-beta.3",
   "documentation": "https://github.com/Pitscheider/ha_inim_prime",
   "requirements": [
-    "inim-prime-primelan@git+https://github.com/Pitscheider/inim-prime-primelan.git@9da098a2f9123732551b79b861fa5d38e5a3f81c",
-    "inim-prime-native@git+https://github.com/Pitscheider/inim-prime-native.git@5622f012415fb96458ca181a1d090532f109096e"
+    "inim-prime-primelan@git+https://github.com/Pitscheider/inim-prime-primelan.git@9d841840dfd69ddf467ec19e96fd2347a5e4fccdb",
+    "inim-prime-native@git+https://github.com/Pitscheider/inim-prime-native.git@d841840dfd69ddf467ec19e96fd2347a5e4fccdb"
   ],
   "codeowners": [
     "@Pitscheider"
