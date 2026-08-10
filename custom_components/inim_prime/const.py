@@ -10,6 +10,7 @@ PANEL_LOG_EVENTS_FETCH_LIMIT_TRIGGER: Final[int] = 3
 PANEL_LOG_EVENTS_FETCH_LIMIT_MIN: Final[int] = 10
 PANEL_LOG_EVENTS_FETCH_LIMIT_MAX: Final[int] = 100
 
+NATIVE_RECONNECT_MIN_INTERVAL = 5.0 # seconds
 
 # Native defaults
 NATIVE_PORT_DEFAULT: Final[int] = inim.prime.native.const.Panel.DEFAULT_PORT

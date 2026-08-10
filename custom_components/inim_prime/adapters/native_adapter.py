@@ -9,6 +9,7 @@ are available at all (gated on whether PrimelanAdapter is configured).
 """
 from __future__ import annotations
 
+import asyncio
 from types import MappingProxyType
 from typing import Optional
 
@@ -39,6 +40,9 @@ from ..models.partitions import (
 from ..models.zones import (
     UnifiedZoneState,
     UnifiedZone,
+)
+from ..const import (
+    NATIVE_RECONNECT_MIN_INTERVAL,
 )
 
 
@@ -144,6 +148,8 @@ class NativeAdapter:
         "_zones",
         "_partitions",
         "_outputs",
+        "_reconnect_lock",
+        "_last_reconnect_attempt"
     )
 
     def __init__(self, client: NativeClient) -> None:
@@ -152,6 +158,27 @@ class NativeAdapter:
         self._zones: dict[int, UnifiedZone] = {}
         self._partitions: dict[int, UnifiedPartition] = {}
         self._outputs: dict[int, UnifiedOutput] = {}
+
+        self._reconnect_lock = asyncio.Lock()
+        self._last_reconnect_attempt: float | None = None
+
+    async def _call_with_reconnect(self, coro_factory):
+        try:
+            return await coro_factory()
+        except (ConnectionError, TimeoutError, OSError):
+            await self._ensure_reconnected()
+            return await coro_factory()
+
+    async def _ensure_reconnected(self) -> None:
+        async with self._reconnect_lock:
+            now = asyncio.get_running_loop().time()
+            if (
+                    self._last_reconnect_attempt is not None and
+                    now - self._last_reconnect_attempt < NATIVE_RECONNECT_MIN_INTERVAL
+            ):
+                return
+            self._last_reconnect_attempt = now
+            await self._client.reconnect()
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -206,33 +233,40 @@ class NativeAdapter:
     # Updaters
     # ------------------------------------------------------------------
     async def update_zones(self) -> MappingProxyType[int, UnifiedZone]:
-        native_zone_terminals = await self._client.update_zone_terminals()
+        async def _do() -> MappingProxyType[int, UnifiedZone]:
+            native_zone_terminals = await self._client.update_zone_terminals()
 
-        result: dict[int, UnifiedZone] = {}
-        for terminal_id, zone_terminal in native_zone_terminals.items():
-            for zone in zone_terminal.zones:
-                result[zone.zone_id] = _zone_to_unified(zone, zone_terminal)
+            result: dict[int, UnifiedZone] = {}
+            for terminal_id, zone_terminal in native_zone_terminals.items():
+                for zone in zone_terminal.zones:
+                    result[zone.zone_id] = _zone_to_unified(zone, zone_terminal)
 
-        self._zones = result
-        return self.zones
+            self._zones = result
+            return self.zones
+
+        return await self._call_with_reconnect(_do)
 
     async def update_partitions(self) -> MappingProxyType[int, UnifiedPartition]:
-        native_partitions = await self._client.update_partitions()
+        async def _do() -> MappingProxyType[int, UnifiedPartition]:
+            native_partitions = await self._client.update_partitions()
 
-        partitions: dict[int, UnifiedPartition] = {}
-        for partition_id, partition in native_partitions.items():
-            partitions[partition_id] = _partition_to_unified(partition)
-        self._partitions = partitions
-        return self.partitions
+            partitions: dict[int, UnifiedPartition] = {}
+            for partition_id, partition in native_partitions.items():
+                partitions[partition_id] = _partition_to_unified(partition)
+            self._partitions = partitions
+            return self.partitions
+        return await self._call_with_reconnect(_do)
 
     async def update_outputs(self) -> MappingProxyType[int, UnifiedOutput]:
-        native_outputs = await self._client.update_outputs()
+        async def _do() -> MappingProxyType[int, UnifiedOutput]:
+            native_outputs = await self._client.update_outputs()
 
-        outputs: dict[int, UnifiedOutput] = {}
-        for output_id, output in native_outputs.items():
-            outputs[output_id] = _output_to_unified(output)
-        self._outputs = outputs
-        return self.outputs
+            outputs: dict[int, UnifiedOutput] = {}
+            for output_id, output in native_outputs.items():
+                outputs[output_id] = _output_to_unified(output)
+            self._outputs = outputs
+            return self.outputs
+        return await self._call_with_reconnect(_do)
 
 
     # ------------------------------------------------------------------
@@ -240,67 +274,61 @@ class NativeAdapter:
     # ------------------------------------------------------------------
 
     ### Zones
-    async def set_zone_bypass(
-            self,
-            zone_id: int,
-            bypass: bool
-    ) -> None:
-        await self._client.set_zone_bypass(zone_id, bypass)
+    async def set_zone_bypass(self, zone_id: int, bypass: bool) -> None:
+        await self._call_with_reconnect(
+            lambda: self._client.set_zone_bypass(zone_id, bypass)
+        )
 
-
-    async def set_all_zone_bypasses(
-            self,
-            bypass: bool,
-    ) -> None:
-        """Set all zones bypass value. The native gateway changes only those which aren't currently in that state."""
-        await self._client.set_all_zone_bypasses(bypass)
+    async def set_all_zone_bypasses(self, bypass: bool) -> None:
+        await self._call_with_reconnect(
+            lambda: self._client.set_all_zone_bypasses(bypass)
+        )
 
     ### Partition arming status
     async def set_partition_arming_statuses(
             self,
             arming_statuses: dict[int, UnifiedArmingStatus],
     ) -> None:
-        native_arming_statuses: dict[int, NativeArmingStatus] = {}
-        for partition_id, arming_status in arming_statuses.items():
-            native_arming_statuses[partition_id] = _UNIFIED_ARMING_STATUS_MAP[arming_status]
-
-        await self._client.set_partition_arming_statuses(native_arming_statuses)
+        native_arming_statuses: dict[int, NativeArmingStatus] = {
+            partition_id: _UNIFIED_ARMING_STATUS_MAP[arming_status]
+            for partition_id, arming_status in arming_statuses.items()
+        }
+        await self._call_with_reconnect(
+            lambda: self._client.set_partition_arming_statuses(native_arming_statuses)
+        )
 
     async def set_partition_arming_status(
             self,
             partition_id: int,
-            arming_status: UnifiedArmingStatus
-    ) -> None:
-        native_arming_status = _UNIFIED_ARMING_STATUS_MAP[arming_status]
-        await self._client.set_partition_arming_status(partition_id, native_arming_status)
-
-    async def set_all_partitions_arming_status(
-            self,
             arming_status: UnifiedArmingStatus,
     ) -> None:
         native_arming_status = _UNIFIED_ARMING_STATUS_MAP[arming_status]
-        await self._client.set_all_partitions_arming_status(native_arming_status)
+        await self._call_with_reconnect(
+            lambda: self._client.set_partition_arming_status(partition_id, native_arming_status)
+        )
+
+    async def set_all_partitions_arming_status(self, arming_status: UnifiedArmingStatus) -> None:
+        native_arming_status = _UNIFIED_ARMING_STATUS_MAP[arming_status]
+        await self._call_with_reconnect(
+            lambda: self._client.set_all_partitions_arming_status(native_arming_status)
+        )
 
     ### Reset partition memory
-    async def reset_partition_memories(
-            self,
-            partition_ids: set[int],
-    ) -> None:
-        await self._client.reset_partition_memories(partition_ids)
+    async def reset_partition_memories(self, partition_ids: set[int]) -> None:
+        await self._call_with_reconnect(
+            lambda: self._client.reset_partition_memories(partition_ids)
+        )
 
-    async def reset_partition_memory(
-            self,
-            partition_id: int,
-    ) -> None:
-        await self._client.reset_partition_memory(partition_id)
+    async def reset_partition_memory(self, partition_id: int) -> None:
+        await self._call_with_reconnect(
+            lambda: self._client.reset_partition_memory(partition_id)
+        )
 
     async def reset_all_partition_memories(self) -> None:
-        await self._client.reset_all_partition_memories()
+        await self._call_with_reconnect(self._client.reset_all_partition_memories)
 
     ### Outputs
-    async def set_output(
-            self,
-            output_id: int,
-            state: bool
-    ) -> None:
-        await self._client.set_output(output_id, state)
+    async def set_output(self, output_id: int, state: bool) -> None:
+        await self._call_with_reconnect(
+            lambda: self._client.set_output(output_id, state)
+        )
