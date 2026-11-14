@@ -43,8 +43,8 @@ PLATFORMS = [
     "binary_sensor",
     "sensor",
     "switch",
-    "select",
     "button",
+    "alarm_control_panel",
     "event",
 ]
 
