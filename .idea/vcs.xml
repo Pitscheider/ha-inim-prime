@@ -10,5 +10,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../inim-prime-native" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../inim-prime-primelan" vcs="Git" />
   </component>
 </project>
