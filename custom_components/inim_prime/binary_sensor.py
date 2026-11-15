@@ -4,13 +4,15 @@ from .models.system_faults import UNIFIED_EXPOSED_SYSTEM_FAULTS
 from .entities.panel import SystemFaultBinarySensor
 from .entities.partition import PartitionAlarmMemoryBinarySensor
 from .entities.zone import ZoneStateBinarySensor, ZoneAlarmMemoryBinarySensor
-
+from .entities.arming_scenarios import ArmingScenarioActiveBinarySensor
 
 async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entities) -> None:
     """Set up INIM Prime binary sensors from a config entry."""
     zones_coordinator = entry.runtime_data.coordinators.zones
     partitions_coordinator = entry.runtime_data.coordinators.partitions
     system_faults_coordinator = entry.runtime_data.coordinators.system_faults
+
+    gateway = entry.runtime_data.gateway
 
     entities = []
 
@@ -22,6 +24,10 @@ async def async_setup_entry(hass, entry: InimPrimeConfigEntry, async_add_entitie
     if partitions_coordinator is not None:
         for partition in partitions_coordinator.gateway.partitions.values():
             entities.append(PartitionAlarmMemoryBinarySensor(partitions_coordinator, partition))
+
+        if gateway.supports_arming_scenarios and gateway.arming_scenarios is not None:
+            for arming_scenario in gateway.arming_scenarios.values():
+                entities.append(ArmingScenarioActiveBinarySensor(partitions_coordinator, arming_scenario))
 
     if system_faults_coordinator is not None:
         for exposedSystemFault in UNIFIED_EXPOSED_SYSTEM_FAULTS:
