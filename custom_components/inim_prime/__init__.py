@@ -94,7 +94,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) ->
 
     # --- Register the panel device ---
     device_registry = dr.async_get(hass)
-    device_registry.async_get_or_create(
+    panel_device = device_registry.async_get_or_create(
         config_entry_id = entry.entry_id,
         identifiers = {(DOMAIN, data["serial_number"])},
         name = "Inim Prime Panel",
@@ -185,6 +185,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: InimPrimeConfigEntry) ->
             system_faults = system_faults_coordinator,
             panel_log_events = panel_log_events_coordinator,
         ),
+        panel_device_id = panel_device.id,
     )
 
 

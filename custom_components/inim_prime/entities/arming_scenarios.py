@@ -10,6 +10,7 @@ from ..models.arming_scenarios import UnifiedArmingScenario
 
 def create_arming_scenarios_device_info(
         serial_number: str,
+        panel_device_id: str,
         domain: str = DOMAIN,
 ) -> DeviceInfo:
     return DeviceInfo(
@@ -17,7 +18,7 @@ def create_arming_scenarios_device_info(
         name = "Arming Scenarios",
         model = "Prime Arming Scenarios",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        via_device = (domain, serial_number),
+        via_device_id = panel_device_id,
     )
 
 
@@ -41,6 +42,7 @@ class ArmingScenarioApplyButton(
 
         self._attr_device_info = create_arming_scenarios_device_info(
             serial_number = self.coordinator.serial_number,
+            panel_device_id = self.coordinator.panel_device_id,
         )
 
     @property
@@ -75,6 +77,7 @@ class ArmingScenarioActiveBinarySensor(
 
         self._attr_device_info = create_arming_scenarios_device_info(
             serial_number = self.coordinator.serial_number,
+            panel_device_id = self.coordinator.panel_device_id,
         )
 
     @property

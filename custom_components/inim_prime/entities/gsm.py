@@ -9,15 +9,16 @@ from ..coordinators import InimPrimeGSMUpdateCoordinator
 
 def create_gsm_device_info(
         serial_number: str,
+        panel_device_id: str,
         domain: str = DOMAIN,
-        sw_version: str | None = None
+        sw_version: str | None = None,
 ) -> DeviceInfo:
     return DeviceInfo(
         identifiers = {(domain, f"{serial_number}_gsm")},
         name = "GSM",
         model = "Prime GSM",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        via_device = (domain, serial_number),
+        via_device_id = panel_device_id,
         sw_version = sw_version,
     )
 
@@ -42,6 +43,7 @@ class GSMSupplyVoltageSensor(
 
         self._attr_device_info = create_gsm_device_info(
             serial_number = self.coordinator.serial_number,
+            panel_device_id = self.coordinator.panel_device_id,
             sw_version = self.coordinator.data.firmware_version,
         )
 
@@ -68,7 +70,8 @@ class GSMOperatorSensor(
 
         self._attr_device_info = create_gsm_device_info(
             serial_number = self.coordinator.serial_number,
-            sw_version = self.coordinator.data.firmware_version
+            panel_device_id = self.coordinator.panel_device_id,
+            sw_version = self.coordinator.data.firmware_version,
         )
 
     @property
@@ -97,6 +100,7 @@ class GSMSignalStrengthSensor(
 
         self._attr_device_info = create_gsm_device_info(
             serial_number = self.coordinator.serial_number,
+            panel_device_id = self.coordinator.panel_device_id,
             sw_version = self.coordinator.data.firmware_version,
         )
 
@@ -123,6 +127,7 @@ class GSMCreditSensor(
 
         self._attr_device_info = create_gsm_device_info(
             serial_number = self.coordinator.serial_number,
+            panel_device_id = self.coordinator.panel_device_id,
             sw_version = self.coordinator.data.firmware_version,
         )
 

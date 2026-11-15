@@ -40,5 +40,7 @@ class InimPrimeCoordinators:
 class InimPrimeRuntimeData:
     gateway: InimPrimeGateway
     coordinators: InimPrimeCoordinators
+    # Device registry id of the panel device, used as via_device_id by the sub-devices
+    panel_device_id: str
 
 type InimPrimeConfigEntry = ConfigEntry[InimPrimeRuntimeData]

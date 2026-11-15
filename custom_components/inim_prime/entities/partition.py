@@ -31,6 +31,7 @@ def create_partition_device_info(
         partition_id: int,
         partition_name: str,
         serial_number: str,
+        panel_device_id: str,
         domain: str = DOMAIN,
 ) -> DeviceInfo:
     return DeviceInfo(
@@ -38,7 +39,7 @@ def create_partition_device_info(
         name = f"Partition {partition_name}",
         model = "Prime Partition",
         manufacturer = INIM_PRIME_DEVICE_MANUFACTURER,
-        via_device = (domain, serial_number),
+        via_device_id = panel_device_id,
     )
 
 
@@ -65,6 +66,7 @@ class PartitionStateSensor(
             partition_id = self.partition_id,
             partition_name = partition.label,
             serial_number = self.coordinator.serial_number,
+            panel_device_id = self.coordinator.panel_device_id,
         )
 
     @property
@@ -103,6 +105,7 @@ class PartitionAlarmControlPanel(
             partition_id = self.partition_id,
             partition_name = partition.label,
             serial_number = self.coordinator.serial_number,
+            panel_device_id = self.coordinator.panel_device_id,
         )
 
     @property
@@ -195,6 +198,7 @@ class ResetPartitionMemoryButton(
             partition_id = self.partition_id,
             partition_name = partition.label,
             serial_number = self.coordinator.serial_number,
+            panel_device_id = self.coordinator.panel_device_id,
         )
 
     async def async_press(self) -> None:
@@ -228,6 +232,7 @@ class PartitionAlarmMemoryBinarySensor(
             partition_id = self.partition_id,
             partition_name = partition.label,
             serial_number = self.coordinator.serial_number,
+            panel_device_id = self.coordinator.panel_device_id,
         )
 
     @property

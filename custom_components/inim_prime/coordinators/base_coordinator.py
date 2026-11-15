@@ -49,3 +49,8 @@ class InimPrimeBaseCoordinator(DataUpdateCoordinator):
     @property
     def serial_number(self) -> str:
         return self.entry_data["serial_number"]
+
+    @property
+    def panel_device_id(self) -> str:
+        """Device registry id of the panel device (available once setup has stored runtime_data)."""
+        return self.config_entry.runtime_data.panel_device_id
