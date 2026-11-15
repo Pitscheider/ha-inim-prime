@@ -6,5 +6,5 @@ class InimPrimeFeatureNotSupportedError(Exception):
 
     Typically means the integration is running native-only and something
     that currently requires PrimeLAN (GSM, system faults, log events,
-    scenarios, output dimming) was requested.
+    output dimming) was requested.
     """

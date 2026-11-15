@@ -29,6 +29,11 @@ from inim.prime.native.models.zones import (
 from inim.prime.native.models.terminals import (
     Terminal as NativeTerminal,
 )
+
+from inim.prime.native.models.arming_scenarios import (
+    ArmingScenario as NativeArmingScenario,
+)
+
 from ..models.outputs import (
     UnifiedOutput,
 )
@@ -41,6 +46,11 @@ from ..models.zones import (
     UnifiedZoneState,
     UnifiedZone,
 )
+
+from ..models.arming_scenarios import (
+    UnifiedArmingScenario,
+)
+
 from ..const import (
     NATIVE_RECONNECT_MIN_INTERVAL,
 )
@@ -140,6 +150,15 @@ def _output_to_unified(output: NativeOutput) -> UnifiedOutput:
         )
     return unified_output
 
+def _arming_scenario_to_unified(arming_scenario: NativeArmingScenario) -> UnifiedArmingScenario:
+    return UnifiedArmingScenario(
+        arming_scenario_id = arming_scenario.arming_scenario_id,
+        label = arming_scenario.label,
+        targets = MappingProxyType({
+            partition_id: _ARMING_STATUS_MAP[arming_status]
+            for partition_id, arming_status in arming_scenario.arming_scenario_setting.targets.items()
+        }),
+    )
 
 class NativeAdapter:
     """Wraps a connected inim.prime.native.Client instance."""
@@ -148,6 +167,8 @@ class NativeAdapter:
         "_zones",
         "_partitions",
         "_outputs",
+        "_arming_scenarios",
+        "_active_arming_scenario_ids",
         "_reconnect_lock",
         "_last_reconnect_attempt"
     )
@@ -158,6 +179,8 @@ class NativeAdapter:
         self._zones: dict[int, UnifiedZone] = {}
         self._partitions: dict[int, UnifiedPartition] = {}
         self._outputs: dict[int, UnifiedOutput] = {}
+        self._arming_scenarios: dict[int, UnifiedArmingScenario] = {}
+        self._active_arming_scenario_ids: frozenset[int] = frozenset()
 
         self._reconnect_lock = asyncio.Lock()
         self._last_reconnect_attempt: float | None = None
@@ -186,6 +209,11 @@ class NativeAdapter:
     async def connect(self) -> None:
         await self._client.connect()
         await self._client.ensure_initialized()
+
+        self._arming_scenarios = {
+            arming_scenario_id: _arming_scenario_to_unified(arming_scenario)
+            for arming_scenario_id, arming_scenario in self._client.arming_scenarios.items()
+        }
 
     async def close(self) -> None:
         self._client.disconnect()
@@ -223,11 +251,28 @@ class NativeAdapter:
     def count_partition_alarm_memories(self) -> int:
         return sum(1 for partition in self._partitions.values() if partition.alarm_memory == True)
 
+    @property
+    def arming_scenarios(self) -> MappingProxyType[int, UnifiedArmingScenario]:
+        return MappingProxyType(self._arming_scenarios)
+
+    @property
+    def count_active_arming_scenarios(self) -> int:
+        return len(self._active_arming_scenario_ids)
+
     def get_zone(self, zone_id: int) -> UnifiedZone | None:
         return self._zones.get(zone_id)
 
     def get_partition(self, partition_id: int) -> UnifiedPartition | None:
         return self._partitions.get(partition_id)
+
+    def get_arming_scenario(self, arming_scenario_id: int) -> UnifiedArmingScenario | None:
+        return self._arming_scenarios.get(arming_scenario_id)
+
+    def is_arming_scenario_active(self, arming_scenario_id: int) -> bool | None:
+        """None if the arming scenario is unknown."""
+        if arming_scenario_id not in self._arming_scenarios:
+            return None
+        return arming_scenario_id in self._active_arming_scenario_ids
 
     # ------------------------------------------------------------------
     # Updaters
@@ -254,6 +299,10 @@ class NativeAdapter:
             for partition_id, partition in native_partitions.items():
                 partitions[partition_id] = _partition_to_unified(partition)
             self._partitions = partitions
+
+            # Derived from the partition statuses just read: no extra panel request
+            self._active_arming_scenario_ids = frozenset(self._client.active_arming_scenarios)
+
             return self.partitions
         return await self._call_with_reconnect(_do)
 
@@ -331,4 +380,10 @@ class NativeAdapter:
     async def set_output(self, output_id: int, state: bool) -> None:
         await self._call_with_reconnect(
             lambda: self._client.set_output(output_id, state)
+        )
+
+    ### Arming scenarios
+    async def apply_arming_scenario(self, arming_scenario_id: int) -> None:
+        await self._call_with_reconnect(
+            lambda: self._client.apply_arming_scenario(arming_scenario_id)
         )

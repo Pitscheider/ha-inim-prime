@@ -21,6 +21,7 @@ from .models.outputs import UnifiedOutput
 from .models.partitions import UnifiedPartition, UnifiedArmingStatus
 from .models.system_faults import UnifiedSystemFaults
 from .models.zones import UnifiedZone
+from .models.arming_scenarios import UnifiedArmingScenario
 
 from .exceptions import InimPrimeFeatureNotSupportedError
 
@@ -68,6 +69,10 @@ class InimPrimeGateway:
 
     @property
     def supports_outputs(self) -> bool:
+        return self._native is not None
+
+    @property
+    def supports_arming_scenarios(self) -> bool:
         return self._native is not None
 
     @property
@@ -129,11 +134,30 @@ class InimPrimeGateway:
     def count_partition_alarm_memories(self) -> int:
         return self._preferred.count_partition_alarm_memories
 
+    @property
+    def arming_scenarios(self) -> MappingProxyType[int, UnifiedArmingScenario] | None:
+        return self._native.arming_scenarios if self._native is not None else None
+
+    @property
+    def count_active_arming_scenarios(self) -> int | None:
+        return self._native.count_active_arming_scenarios if self._native is not None else None
+
     def get_zone(self, zone_id: int) -> UnifiedZone | None:
         return self._preferred.get_zone(zone_id)
 
     def get_partition(self, partition_id: int) -> UnifiedPartition | None:
             return self._preferred.get_partition(partition_id)
+
+    def get_arming_scenario(self, arming_scenario_id: int) -> UnifiedArmingScenario | None:
+        if self._native is None:
+            return None
+        return self._native.get_arming_scenario(arming_scenario_id)
+
+    def is_arming_scenario_active(self, arming_scenario_id: int) -> bool | None:
+        """None if the arming scenario is unknown, or arming scenarios are not supported."""
+        if self._native is None:
+            return None
+        return self._native.is_arming_scenario_active(arming_scenario_id)
 
     # ------------------------------------------------------------------
     # Refreshes -- do I/O, overwrite the cache, return it. Coordinators call
@@ -143,6 +167,8 @@ class InimPrimeGateway:
         return await self._preferred.update_zones()
 
     async def update_partitions(self) -> MappingProxyType[int, UnifiedPartition]:
+        # Also refreshes the arming scenarios' active state (native only),
+        # which is derived from the native partition statuses.
         return await self._preferred.update_partitions()
 
     async def update_outputs(self) -> MappingProxyType[int, UnifiedOutput]:
@@ -230,3 +256,12 @@ class InimPrimeGateway:
         if self._native is None:
             raise InimPrimeFeatureNotSupportedError("Output set requires Native")
         await self._native.set_output(output_id, state)
+
+
+    async def apply_arming_scenario(
+            self,
+            arming_scenario_id: int,
+    ) -> None:
+        if self._native is None:
+            raise InimPrimeFeatureNotSupportedError("Arming scenarios require Native")
+        await self._native.apply_arming_scenario(arming_scenario_id)
