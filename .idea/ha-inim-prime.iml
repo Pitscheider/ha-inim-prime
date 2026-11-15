@@ -9,5 +9,6 @@
     <orderEntry type="jdk" jdkName="~/PycharmProjects/ha-inim-prime/.venv" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="inim-prime-native" />
+    <orderEntry type="module" module-name="inim-prime-primelan" />
   </component>
 </module>

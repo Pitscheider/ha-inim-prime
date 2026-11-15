@@ -81,7 +81,7 @@ class PartitionAlarmControlPanel(
 ):
     _attr_has_entity_name = True
     _attr_name = None
-    _attr_options = [mode.name for mode in UnifiedArmingStatus]
+    _attr_code_arm_required = False
     _attr_supported_features = (
             AlarmControlPanelEntityFeature.ARM_AWAY
             | AlarmControlPanelEntityFeature.ARM_HOME
