@@ -1,6 +1,6 @@
 from .entities.panel import DisableAllZoneBypassesButton, ResetAllPartitionMemoriesButton
 from .entities.partition import ResetPartitionMemoryButton
-from .entities.arming_scenario import ArmingScenarioApplyButton
+from .entities.arming_scenarios import ArmingScenarioApplyButton
 from .runtime_data import InimPrimeConfigEntry
 
 
